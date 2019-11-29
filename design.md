@@ -1,6 +1,6 @@
-# The Design and Specification for the vocab command line tool
+The Design and Specification for the vocab command line tool
 
-## Motivation
+# Motivation
 I recently took the course Learning how To Learn on Coursera. Shortly before
 that I began reading Ron Chernow's Alexander Hamilton biography. There are many
 words in that biography I didn't know and was unable to infer from the context.
@@ -47,10 +47,76 @@ vocabulary and use more precise language to articulate their thoughts. Don't you
 hate it when you can't satisfactorily convey an argument or idea to someone
 because you forgot the word for it?
 
-## Description
+# Description
 `vocab` is a command line utility to help you memorize words and expand your
 vocabulary. It puts to use the concept of "spaced repetition" to maximize
 efficiency in your studies. To learn more about spaced repetition and other
 powerful learning techniques, review 
 
 `vocab` is only available in English.
+
+# V1 Features
+The most basic feature set.
+
+## `vocab help`
+displays the man page.
+
+## `vocab add word definition [type]`
+adds `word` to your practice set with the provided `definition`.
+
+type = noun | verb | pronoun | adjective | adverb | preposition | conjuction | interjection
+
+you must specify the type when adding homonyms. For example, "play" could refer
+to the verb "to play" but it could also refer to a play you see in a theatre. To
+add them both you may do the following:
+
+`vocab add word play verb`
+`vocab add word play noun`
+
+## `vocab words`
+lists all the words in your repetoire along with their definition and number of
+times rehearsed.
+
+## `vocab modify word definition`
+changes the current definition of `word` to be `definition`.
+
+## `vocab delete word`
+deletes `word`, if it exists.
+
+## `vocab practice [ all | half | n ]`
+start a study session with either all, half, or a specific number (n) of words.
+
+### interactive practice
+the following commands are available to you during your study session:
+
+- `r` | `recalled`: go to the next word after you successfully recall the current word's definition and/or used it in a sentence.
+- `f` | `forgot`: move on to the next word after you failed to recall the current word's definition and/or used it in a sentence.
+- `s` | `show`: show the definition of the word.
+- `q` | `quit`: quit the study session.
+
+## suggested method of practice
+At each word, recite the definition and use it in a sentence, then move on to
+the next word using either the `r` or `f` command. Use the `s` command to reveal the
+definition for confirmation of your knowledge or because you forgot the
+definition.
+
+## word selection for study sessions
+Words are selected based on a weighted probability, where the weight of the word
+is the inverse of how many times it has been rehearsed before.
+
+From the set of all words randomly select any words with a practice count of 0 either until there are no more
+words with a frequency of 0 or the practice set is full.
+
+If the practice set is full, we are done.
+
+If the practice set is not full assign a value of 1 / (practice count) to each
+remaining word. Sum the total and divide each value by the total to get the weight.
+Compute the array of cumulative sums of the weights. Generate a random number
+between 0 and 1 and add the word associated with the range to the set. Remove
+this word from the selection pool. Repeat until the set is full.
+
+### Note on the selection algorithm
+If m is the number of words needed for the practice session and n is the total
+number of words then the selection algorithm is O(m * n). For now this is fine,
+as I don't anticipate word lists getting very large. But is there a more
+efficient method to do this?
