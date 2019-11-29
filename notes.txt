@@ -1,0 +1,57 @@
+For library designers you can use package objects:
+
+package com.example
+
+package object json {
+  class JSONObject { ... }
+  def fromString(string: String): JSONObject = { ... }
+}
+
+- The file must be named package.scala and is located in the same package
+  directory as the package object it is defining.
+
+  Parameterized types:
+
+  What does List[+A] mean?
+
+  List[B] is a subtype of List[A] for any B that is a subtype of A. This is
+  called covariance.
+
+To use or not to use parentheses for a function with zero arguments? The
+convention is to omit parentheses for pure functions, i.e. functions that have
+no side effects, and to include parentheses for functions that have side
+effects.
+
+By-name parameters
+
+def foo[T](x: => T) = x
+
+Evaluation of x is deferred until its use. It is also evaluated every time it is
+used.
+
+Scala enums! They are available throught the scala standard library.
+
+object Breed extends Enumeration {
+  type Breed = Value
+  val doberman = Value("Doberman")
+  val yorkie   = Value("Yorkshire")
+  val scottie  = Value("Scottish")
+  ...
+}
+
+import Breed._
+
+...
+
+Note you don't actually need human readable strings for your values:
+
+object WeekDay extends Enumeration {
+  type WeekDay = Value
+  val Mon, Tue, Wed, Thu, Fri, Sat, Sun
+}
+import WeekDay._
+
+Note that case classes are usually used in place of Scala enumerations.
+
+Scala trait mixins:
+Use the `with` keyword
