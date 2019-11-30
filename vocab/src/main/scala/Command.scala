@@ -34,9 +34,6 @@ case class  Add(word: String, definition: String, partOfSpeech: Option[SpeechPar
 case class  Modify(word: String, newDefinition: String, partOfSpeech: Option[SpeechPart])   extends Command
 case class  Delete(word: String, partOfSpeech: Option[SpeechPart])                          extends Command
 case class  Practice(sessionType: Option[PracticeSessionType])                              extends Command
-// TODO - is unknown really necessary? I could use parse error without wrapping
-// it un Unknown...
-case class  Unknown(error: ParseError)                                                      extends Command 
 case object Words                                                                           extends Command
 case object Help                                                                            extends Command
 case object NoArgs                                                                          extends Command
@@ -48,6 +45,9 @@ sealed trait ParseError {
 }
 case class ParseErrorUnknown() extends ParseError {
   val message = "an unknown error ocurred during parsing"
+}
+case class ParseErrorNoArgs() extends ParseError {
+  val message = "no arguments were supplied"
 }
 case class ParseErrorUnsupportedCommand(command: String) extends ParseError {
   val message = s"$command is not a supported command"
@@ -86,7 +86,7 @@ object CommandLine {
 
   import Args._
 
-  def parseArgs(args: String): Command = {
+  def parseArgs(args: String): Either[ParseError, Command] = {
     // split by whitespace, remove extra whitespace, and drop the first
     // argument (the name of the program)
     val argList = args.split(" ").map(_.trim).drop(1).toList
@@ -95,30 +95,25 @@ object CommandLine {
     argList.headOption match {
       case Some(rawArg) => rawArg match {
         case `addArgName` | `modifyArgName` | `deleteArgName` | `practiceArgName` => parseMultiArgCommand(argList)
-        case `helpArgName` => Help
-        case `versionArgName` => Version
-        case `wordsArgName` => Words
-        case unsupported => Unknown(ParseErrorUnsupportedCommand(unsupported))
+        case `helpArgName` => Right(Help)
+        case `versionArgName` => Right(Version)
+        case `wordsArgName` => Right(Words)
+        case unsupported => Left(ParseErrorUnsupportedCommand(unsupported))
       }
-      case None => NoArgs
+      case None => Left(ParseErrorNoArgs())
     }
   }
 
-  private def parseMultiArgCommand(argList: List[String]): Command = {
-    def extractCommand[A <: Command, B <: Command](either: Either[A, B]) = either match {
-      case Right(a) => a
-      case Left(b) => b
-    }
-
+  private def parseMultiArgCommand(argList: List[String]): Either[ParseError, Command] = {
     argList.head match {
       case `addArgName` =>
-        extractCommand(argList.tail.foldLeft(Right(Add(placeholder, placeholder, None)): Either[Unknown, Add])(parseAdd))
+        argList.tail.foldLeft(Right(Add(placeholder, placeholder, None)): Either[ParseError, Add])(parseAdd)
       case `modifyArgName` =>
-        extractCommand(argList.tail.foldLeft(Right(Modify(placeholder, placeholder, None)): Either[Unknown, Modify])(parseModify))
+        argList.tail.foldLeft(Right(Modify(placeholder, placeholder, None)): Either[ParseError, Modify])(parseModify)
       case `deleteArgName` =>
-        extractCommand(argList.tail.foldLeft(Right(Delete(placeholder, None)): Either[Unknown, Delete])(parseDelete))
+        argList.tail.foldLeft(Right(Delete(placeholder, None)): Either[ParseError, Delete])(parseDelete)
       case `practiceArgName` =>
-        extractCommand(argList.tail.foldLeft(Right(Practice(None)): Either[Unknown, Practice])(parsePractice))
+        argList.tail.foldLeft(Right(Practice(None)): Either[ParseError, Practice])(parsePractice)
     }
   }
 
@@ -141,12 +136,12 @@ object CommandLine {
   
   // Assuming `vocab add` prefix, parses `word definition partOfSpeech`.
   // Anything after `partOfSpeech` is ignored.
-  private def parseAdd(tentativeAdd: Either[Unknown, Add], nextArg: String): Either[Unknown, Add] = {
+  private def parseAdd(tentativeAdd: Either[ParseError, Add], nextArg: String): Either[ParseError, Add] = {
     tentativeAdd match {
       case Left(_) => tentativeAdd
       case Right(add @ Add(word, description, partOfSpeech)) => word match {
         case `placeholder` if containsNonLowercaseAlphabetical(nextArg) =>
-          Left(Unknown(ParseErrorUnexpectedNonAlphabeticalToken(nextArg)))
+          Left(ParseErrorUnexpectedNonAlphabeticalToken(nextArg))
         case `placeholder` =>
           Right(Add(nextArg, description, partOfSpeech))
 
@@ -161,7 +156,7 @@ object CommandLine {
           if (!containsNonLowercaseAlphabetical(nextArg))
             Right(Add(word, nextArg, partOfSpeech))
           else
-            Left(Unknown(ParseErrorUnexpectedNonAlphabeticalToken(nextArg)))
+            Left(ParseErrorUnexpectedNonAlphabeticalToken(nextArg))
 
         // Currently parsing description valid
         case word if description != placeholder
@@ -172,7 +167,7 @@ object CommandLine {
         case word if description != placeholder
         && containsNonLowercaseAlphabetical(nextArg)
         && !nextArg.startsWith("--") =>
-          Left(Unknown(ParseErrorUnexpectedNonAlphabeticalToken(nextArg)))
+          Left(ParseErrorUnexpectedNonAlphabeticalToken(nextArg))
 
         // Currently parsing description and hit part of speech
         case word if partOfSpeech.isEmpty
@@ -180,7 +175,7 @@ object CommandLine {
         && nextArg.startsWith("--") =>
           partOfSpeechFromString(nextArg) match {
             case invalid @ Invalid(_) =>
-              Left(Unknown(ParseErrorInvalidPartOfSpeech(invalid)))
+              Left(ParseErrorInvalidPartOfSpeech(invalid))
             case speechPart => Right(Add(word, description, Some(speechPart)))
           }
         
@@ -192,7 +187,7 @@ object CommandLine {
             partOfSpeech: $partOfSpeech,
             nextArg: $nextArg
           """
-          Left(Unknown(ParseErrorUnknown()))
+          Left(ParseErrorUnknown())
         }
       }
     }
@@ -201,12 +196,12 @@ object CommandLine {
   // Asusming `vocab modify` prefix, parses `word definition --type`. Parsing is
   // identical to parseAdd - TODO - how can I consolidate these, given that the
   // types are different.
-  private def parseModify(tentativeModify: Either[Unknown, Modify], nextArg: String): Either[Unknown, Modify] = {
+  private def parseModify(tentativeModify: Either[ParseError, Modify], nextArg: String): Either[ParseError, Modify] = {
     tentativeModify match {
-      case Left(_) => tentativeModify // Unknown command, continue along...
+      case Left(_) => tentativeModify 
       case Right(modify @ Modify(word, newDefinition, partOfSpeech)) => word match {
         case `placeholder` if containsNonLowercaseAlphabetical(nextArg) =>
-          Left(Unknown(ParseErrorUnexpectedNonAlphabeticalToken(nextArg)))
+          Left(ParseErrorUnexpectedNonAlphabeticalToken(nextArg))
         case `placeholder` =>
           Right(Modify(nextArg, newDefinition, partOfSpeech))
 
@@ -218,7 +213,7 @@ object CommandLine {
           if (!containsNonLowercaseAlphabetical(nextArg))
             Right(Modify(word, nextArg, partOfSpeech))
           else
-            Left(Unknown(ParseErrorUnexpectedNonAlphabeticalToken(nextArg)))
+            Left(ParseErrorUnexpectedNonAlphabeticalToken(nextArg))
 
         // Continue parsing valid definition
         case word if newDefinition != placeholder
@@ -229,29 +224,29 @@ object CommandLine {
         case word if newDefinition != placeholder
         && containsNonLowercaseAlphabetical(nextArg)
         && !nextArg.startsWith("--") =>
-          Left(Unknown(ParseErrorUnexpectedNonAlphabeticalToken(nextArg)))
+          Left(ParseErrorUnexpectedNonAlphabeticalToken(nextArg))
 
         case word if partOfSpeech.isEmpty
         && newDefinition != placeholder
         && nextArg.startsWith("--") => partOfSpeechFromString(nextArg) match {
           case invalid @ Invalid(_) => // TODO - match on type instead of @ ...
-            Left(Unknown(ParseErrorInvalidPartOfSpeech(invalid)))
+            Left(ParseErrorInvalidPartOfSpeech(invalid))
           case speechPart => Right(Modify(word, newDefinition, Some(speechPart)))
         }
 
         // We should not be here
-        case _ => Left(Unknown(ParseErrorUnknown()))
+        case _ => Left(ParseErrorUnknown())
       }
     }
   }
 
 
-  private def parseDelete(tentativeDelete: Either[Unknown, Delete], nextArg: String): Either[Unknown, Delete] = {
+  private def parseDelete(tentativeDelete: Either[ParseError, Delete], nextArg: String): Either[ParseError, Delete] = {
     // TODO - implement me
     ???
   }
 
-  private def parsePractice(tentativePractice: Either[Unknown, Practice], nextArg: String): Either[Unknown, Practice] = {
+  private def parsePractice(tentativePractice: Either[ParseError, Practice], nextArg: String): Either[ParseError, Practice] = {
     // TODO - implement me
     ???
   }
