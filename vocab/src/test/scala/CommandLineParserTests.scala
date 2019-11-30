@@ -3,6 +3,15 @@ import org.scalatest.FunSuite
 import commandlineparser._
 
 class CommandLineParserTests extends FunSuite {
+
+  // General parse tests
+  test("attempt to use unsupported command") {
+    val args = "vocab drink a cup of tea"
+    assertResult(Unknown(ParseErrorUnsupportedCommand("drink"))) {
+      CommandLine.parseArgs(args)
+    }
+  }
+
   // Parse Add tests
   test("Add no part of speech") {
     val args = "vocab add ardor enthusiasm or passion"
@@ -20,21 +29,21 @@ class CommandLineParserTests extends FunSuite {
 
   test("Add with part of speech invalid") {
     val args = "vocab add ardor enthusiasm or passion --notAValidType"
-    assertResult(Unknown(Some("notAValidType is not a valid part of speech"))) {
+    assertResult(Unknown(ParseErrorInvalidPartOfSpeech(Invalid("notAValidType")))) {
       CommandLine.parseArgs(args)
     }
   }
 
   test("Add with description invalid 1") {
     val args = "vocab add ardor enthu$ia$m or pa$$ion --notValid"
-    assertResult(Unknown(Some("enthu$ia$m is not a valid description"))) {
+    assertResult(Unknown(ParseErrorUnexpectedNonAlphabeticalToken("enthu$ia$m"))) {
       CommandLine.parseArgs(args)
     }
   }
 
   test("Add with description invalid 2") {
     val args = "vocab add ardor enthusiasm or pa$$ion"
-    assertResult(Unknown(Some("enthusiasm or pa$$ion is not a valid description"))) {
+    assertResult(Unknown(ParseErrorUnexpectedNonAlphabeticalToken("pa$$ion"))) {
       CommandLine.parseArgs(args)
     }
   }

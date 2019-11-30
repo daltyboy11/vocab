@@ -30,3 +30,4 @@ build
 
 #general
 *.class
+*.swp

@@ -34,20 +34,26 @@ case class  Add(word: String, definition: String, partOfSpeech: Option[SpeechPar
 case class  Modify(word: String, newDefinition: String, partOfSpeech: Option[SpeechPart])   extends Command
 case class  Delete(word: String, partOfSpeech: Option[SpeechPart])                          extends Command
 case class  Practice(sessionType: Option[PracticeSessionType])                              extends Command
-case class  Unknown(hint: Option[String])                                                   extends Command
+case class  Unknown(error: ParseError)                                                      extends Command
 case object Words                                                                           extends Command
 case object Help                                                                            extends Command
 case object NoArgs                                                                          extends Command
 case object Version                                                                         extends Command
 
-// Command Error Hints
-sealed trait CommandHint {
+// Informative parsing errors
+sealed trait ParseError {
   def message: String
 }
-case class CommandHintInvalidWord(word: String) extends CommandHint {
-  val message = s"$word is not a valid word"
+case class ParseErrorUnknown() extends ParseError {
+  val message = "an unknown error ocurred during parsing"
 }
-case class CommandHintInvalidPartOfSpeech(invalid: Invalid) extends CommandHint {
+case class ParseErrorUnsupportedCommand(command: String) extends ParseError {
+  val message = s"$command is not a supported command"
+}
+case class ParseErrorUnexpectedNonAlphabeticalToken(token: String) extends ParseError {
+  val message = s"received $token but expected an alphabetical string"
+}
+case class ParseErrorInvalidPartOfSpeech(invalid: Invalid) extends ParseError {
   val message = s"${invalid.given} is not a valid part of speech"
 }
 
@@ -90,7 +96,7 @@ object CommandLine {
         case `helpArgName` => Help
         case `versionArgName` => Version
         case `wordsArgName` => Words
-        case _ => Unknown(None)
+        case unsupported => Unknown(ParseErrorUnsupportedCommand(unsupported))
       }
       case None => NoArgs
     }
@@ -137,8 +143,10 @@ object CommandLine {
     tentativeAdd match {
       case Left(_) => tentativeAdd
       case Right(add @ Add(word, description, partOfSpeech)) => word match {
-        case `placeholder` if containsNonLowercaseAlphanumeric(nextArg) => Left(Unknown(Some(s"$nextArg not a valid word")))
-        case `placeholder` => Right(Add(nextArg, description, partOfSpeech))
+        case `placeholder` if containsNonLowercaseAlphanumeric(nextArg) =>
+          Left(Unknown(ParseErrorUnexpectedNonAlphabeticalToken(nextArg)))
+        case `placeholder` =>
+          Right(Add(nextArg, description, partOfSpeech))
 
         // Excess input when parsing is finished. just continue along.
         case word if description != placeholder
@@ -151,7 +159,7 @@ object CommandLine {
           if (!containsNonLowercaseAlphanumeric(nextArg))
             Right(Add(word, nextArg, partOfSpeech))
           else
-            Left(Unknown(Some(s"${nextArg} is not a valid description")))
+            Left(Unknown(ParseErrorUnexpectedNonAlphabeticalToken(nextArg)))
 
         // Currently parsing description valid
         case word if description != placeholder
@@ -162,15 +170,15 @@ object CommandLine {
         case word if description != placeholder
         && containsNonLowercaseAlphanumeric(nextArg)
         && !nextArg.startsWith("--") =>
-          Left(Unknown(Some(s"${description + " " + nextArg} is not a valid description")))
+          Left(Unknown(ParseErrorUnexpectedNonAlphabeticalToken(nextArg)))
 
         // Currently parsing description and hit part of speech
         case word if partOfSpeech.isEmpty
         && description != placeholder
         && nextArg.startsWith("--") =>
           partOfSpeechFromString(nextArg) match {
-            case Invalid(invalidPartOfSpeech) =>
-              Left(Unknown(Some(s"$invalidPartOfSpeech is not a valid part of speech")))
+            case invalid @ Invalid(_) =>
+              Left(Unknown(ParseErrorInvalidPartOfSpeech(invalid)))
             case speechPart => Right(Add(word, description, Some(speechPart)))
           }
         
@@ -182,7 +190,7 @@ object CommandLine {
             partOfSpeech: $partOfSpeech,
             nextArg: $nextArg
           """
-          Left(Unknown(Some(message)))
+          Left(Unknown(ParseErrorUnknown()))
         }
       }
     }
@@ -190,17 +198,17 @@ object CommandLine {
 
   private def parseModify(tentativeModify: Either[Unknown, Modify], nextArg: String): Either[Unknown, Modify] = {
     // TODO - implement me
-    Left(Unknown(None))
+    ???
   }
 
   private def parseDelete(tentativeDelete: Either[Unknown, Delete], nextArg: String): Either[Unknown, Delete] = {
     // TODO - implement me
-    Left(Unknown(None))
+    ???
   }
 
   private def parsePractice(tentativePractice: Either[Unknown, Practice], nextArg: String): Either[Unknown, Practice] = {
     // TODO - implement me
-    Left(Unknown(None))
+    ???
   }
 
 }
