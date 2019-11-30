@@ -1,4 +1,4 @@
-package commandline
+package commandlineparser
 
 // Top of the hierarchy for supported commands
 sealed trait Command
@@ -83,6 +83,7 @@ object CommandLine {
     // argument (the name of the program)
     val argList = args.split(" ").map(_.trim).drop(1).toList
 
+    println(s"1: ${argList}")
     // parse first arg
     argList.headOption match {
       case Some(rawArg) => rawArg match {
@@ -116,7 +117,7 @@ object CommandLine {
 
   // True if all the characters in `s` are lowercase alphanumeric.
   // False otherwise.
-  private def containsNonLowercaseAlphanumeric(s: String): Boolean = s.forall(('a' to 'z').contains(_))
+  private def containsNonLowercaseAlphanumeric(s: String): Boolean = !s.forall(('a' to 'z').contains(_))
 
   // Converts a string to its corresponding SpeechPart case class/object
   private def partOfSpeechFromString(s: String): SpeechPart = s match {
@@ -128,7 +129,7 @@ object CommandLine {
     case `prepositionArg`               => Preposition
     case `conjunctionArg`               => Conjuction
     case `interjectionArg`              => Interjection
-    case invalid                        => Invalid(invalid)
+    case invalid                        => Invalid(invalid.substring(2))
   }
   
   // Assuming `vocab add` prefix, parses `word definition partOfSpeech` or `word partOfSpeech definition`.
@@ -158,7 +159,7 @@ object CommandLine {
         case word if partOfSpeech.isEmpty
         && description != placeholder
         && !containsNonLowercaseAlphanumeric(nextArg) =>
-          Right(Add(word, description + nextArg, partOfSpeech))
+          Right(Add(word, description + " " + nextArg, partOfSpeech))
 
         // Currently parsing description invalid
         case word if partOfSpeech.isEmpty
