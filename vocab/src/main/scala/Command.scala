@@ -83,7 +83,6 @@ object CommandLine {
     // argument (the name of the program)
     val argList = args.split(" ").map(_.trim).drop(1).toList
 
-    println(s"1: ${argList}")
     // parse first arg
     argList.headOption match {
       case Some(rawArg) => rawArg match {
@@ -140,33 +139,30 @@ object CommandLine {
       case Right(add @ Add(word, description, partOfSpeech)) => word match {
         case `placeholder` if containsNonLowercaseAlphanumeric(nextArg) => Left(Unknown(Some(s"$nextArg not a valid word")))
         case `placeholder` => Right(Add(nextArg, description, partOfSpeech))
-        
-        // Part of speech comes first
-        case word if partOfSpeech.isEmpty && description == placeholder && nextArg.startsWith("--") =>
-          partOfSpeechFromString(nextArg) match {
-            case Invalid(invalidPartOfSpeech) =>
-              Left(Unknown(Some(s"$invalidPartOfSpeech is not a valid part of speech")))
-            case speechPart => Right(Add(word, description, Some(speechPart)))
-          }      
 
-        // Description comes first
+        // Excess input when parsing is finished. just continue along.
+        case word if description != placeholder
+        && !partOfSpeech.isEmpty =>
+          Right(add)
+
+        // Hit the description
         case word if partOfSpeech.isEmpty
-        && description == placeholder
-        && !containsNonLowercaseAlphanumeric(nextArg) =>
-          Right(Add(word, nextArg, partOfSpeech))
+        && description == placeholder =>
+          if (!containsNonLowercaseAlphanumeric(nextArg))
+            Right(Add(word, nextArg, partOfSpeech))
+          else
+            Left(Unknown(Some(s"${nextArg} is not a valid description")))
 
         // Currently parsing description valid
-        case word if partOfSpeech.isEmpty
-        && description != placeholder
+        case word if description != placeholder
         && !containsNonLowercaseAlphanumeric(nextArg) =>
           Right(Add(word, description + " " + nextArg, partOfSpeech))
 
         // Currently parsing description invalid
-        case word if partOfSpeech.isEmpty
-        && description != placeholder
-        && !containsNonLowercaseAlphanumeric(nextArg)
+        case word if description != placeholder
+        && containsNonLowercaseAlphanumeric(nextArg)
         && !nextArg.startsWith("--") =>
-          Left(Unknown(Some(s"${description + nextArg} is not a valid description")))
+          Left(Unknown(Some(s"${description + " " + nextArg} is not a valid description")))
 
         // Currently parsing description and hit part of speech
         case word if partOfSpeech.isEmpty
@@ -177,12 +173,17 @@ object CommandLine {
               Left(Unknown(Some(s"$invalidPartOfSpeech is not a valid part of speech")))
             case speechPart => Right(Add(word, description, Some(speechPart)))
           }
-
-        // Excess input when parsing is finished. just continue along.
-        case word if description != placeholder && !partOfSpeech.isEmpty => Right(add)
-
+        
         // We should not be here, but just in case, leave an unexpected error unknown
-        case _ => Left(Unknown(Some("An unknown error occured")))
+        case _ => {
+          val message = s"""
+            word: $word,
+            description: $description,
+            partOfSpeech: $partOfSpeech,
+            nextArg: $nextArg
+          """
+          Left(Unknown(Some(message)))
+        }
       }
     }
   }
