@@ -34,7 +34,9 @@ case class  Add(word: String, definition: String, partOfSpeech: Option[SpeechPar
 case class  Modify(word: String, newDefinition: String, partOfSpeech: Option[SpeechPart])   extends Command
 case class  Delete(word: String, partOfSpeech: Option[SpeechPart])                          extends Command
 case class  Practice(sessionType: Option[PracticeSessionType])                              extends Command
-case class  Unknown(error: ParseError)                                                      extends Command
+// TODO - is unknown really necessary? I could use parse error without wrapping
+// it un Unknown...
+case class  Unknown(error: ParseError)                                                      extends Command 
 case object Words                                                                           extends Command
 case object Help                                                                            extends Command
 case object NoArgs                                                                          extends Command
@@ -77,7 +79,7 @@ object CommandLine {
     val adverbArg                     = "--adverb"
     val prepositionArg                = "--preposition"
     val conjunctionArg                = "--conjunction"
-    val interjectionArg               = "--interjectionArg"
+    val interjectionArg               = "--interjection"
   }
 
   val placeholder                   = "-1"
@@ -122,7 +124,7 @@ object CommandLine {
 
   // True if all the characters in `s` are lowercase alphanumeric.
   // False otherwise.
-  private def containsNonLowercaseAlphanumeric(s: String): Boolean = !s.forall(('a' to 'z').contains(_))
+  private def containsNonLowercaseAlphabetical(s: String): Boolean = !s.forall(('a' to 'z').contains(_))
 
   // Converts a string to its corresponding SpeechPart case class/object
   private def partOfSpeechFromString(s: String): SpeechPart = s match {
@@ -137,13 +139,13 @@ object CommandLine {
     case invalid                        => Invalid(invalid.substring(2))
   }
   
-  // Assuming `vocab add` prefix, parses `word definition partOfSpeech` or `word partOfSpeech definition`.
-  // If partOfSpeech comes after definition than any input after partOfSpeech is ignored.
+  // Assuming `vocab add` prefix, parses `word definition partOfSpeech`.
+  // Anything after `partOfSpeech` is ignored.
   private def parseAdd(tentativeAdd: Either[Unknown, Add], nextArg: String): Either[Unknown, Add] = {
     tentativeAdd match {
       case Left(_) => tentativeAdd
       case Right(add @ Add(word, description, partOfSpeech)) => word match {
-        case `placeholder` if containsNonLowercaseAlphanumeric(nextArg) =>
+        case `placeholder` if containsNonLowercaseAlphabetical(nextArg) =>
           Left(Unknown(ParseErrorUnexpectedNonAlphabeticalToken(nextArg)))
         case `placeholder` =>
           Right(Add(nextArg, description, partOfSpeech))
@@ -156,19 +158,19 @@ object CommandLine {
         // Hit the description
         case word if partOfSpeech.isEmpty
         && description == placeholder =>
-          if (!containsNonLowercaseAlphanumeric(nextArg))
+          if (!containsNonLowercaseAlphabetical(nextArg))
             Right(Add(word, nextArg, partOfSpeech))
           else
             Left(Unknown(ParseErrorUnexpectedNonAlphabeticalToken(nextArg)))
 
         // Currently parsing description valid
         case word if description != placeholder
-        && !containsNonLowercaseAlphanumeric(nextArg) =>
+        && !containsNonLowercaseAlphabetical(nextArg) =>
           Right(Add(word, description + " " + nextArg, partOfSpeech))
 
         // Currently parsing description invalid
         case word if description != placeholder
-        && containsNonLowercaseAlphanumeric(nextArg)
+        && containsNonLowercaseAlphabetical(nextArg)
         && !nextArg.startsWith("--") =>
           Left(Unknown(ParseErrorUnexpectedNonAlphabeticalToken(nextArg)))
 
@@ -196,10 +198,53 @@ object CommandLine {
     }
   }
 
+  // Asusming `vocab modify` prefix, parses `word definition --type`. Parsing is
+  // identical to parseAdd - TODO - how can I consolidate these, given that the
+  // types are different.
   private def parseModify(tentativeModify: Either[Unknown, Modify], nextArg: String): Either[Unknown, Modify] = {
-    // TODO - implement me
-    ???
+    tentativeModify match {
+      case Left(_) => tentativeModify // Unknown command, continue along...
+      case Right(modify @ Modify(word, newDefinition, partOfSpeech)) => word match {
+        case `placeholder` if containsNonLowercaseAlphabetical(nextArg) =>
+          Left(Unknown(ParseErrorUnexpectedNonAlphabeticalToken(nextArg)))
+        case `placeholder` =>
+          Right(Modify(nextArg, newDefinition, partOfSpeech))
+
+        // Parsing finished, carry along. 
+        case word if newDefinition != placeholder && !partOfSpeech.isEmpty => Right(modify)
+
+        // Start of description
+        case word if newDefinition == placeholder && partOfSpeech.isEmpty =>
+          if (!containsNonLowercaseAlphabetical(nextArg))
+            Right(Modify(word, nextArg, partOfSpeech))
+          else
+            Left(Unknown(ParseErrorUnexpectedNonAlphabeticalToken(nextArg)))
+
+        // Continue parsing valid definition
+        case word if newDefinition != placeholder
+        && !containsNonLowercaseAlphabetical(nextArg) =>
+          Right(Modify(word, newDefinition + " " + nextArg, partOfSpeech))
+
+        // Continue parsing definition invalid - next arg is not a "--"
+        case word if newDefinition != placeholder
+        && containsNonLowercaseAlphabetical(nextArg)
+        && !nextArg.startsWith("--") =>
+          Left(Unknown(ParseErrorUnexpectedNonAlphabeticalToken(nextArg)))
+
+        case word if partOfSpeech.isEmpty
+        && newDefinition != placeholder
+        && nextArg.startsWith("--") => partOfSpeechFromString(nextArg) match {
+          case invalid @ Invalid(_) => // TODO - match on type instead of @ ...
+            Left(Unknown(ParseErrorInvalidPartOfSpeech(invalid)))
+          case speechPart => Right(Modify(word, newDefinition, Some(speechPart)))
+        }
+
+        // We should not be here
+        case _ => Left(Unknown(ParseErrorUnknown()))
+      }
+    }
   }
+
 
   private def parseDelete(tentativeDelete: Either[Unknown, Delete], nextArg: String): Either[Unknown, Delete] = {
     // TODO - implement me
