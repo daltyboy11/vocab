@@ -55,3 +55,56 @@ Note that case classes are usually used in place of Scala enumerations.
 
 Scala trait mixins:
 Use the `with` keyword
+
+Phantom Types
+- Define a type with no instances of said type
+- Phantom types act as "marker"
+- Useful for defining work flows that must be processed in a specific order
+- See Taxes and Payroll example in Chapter 5, p 142
+
+Piping and Understanding Implicit Conversions
+
+object API {
+  def getRate(): Double = 1.4
+}
+
+// Without piping
+val standardRate = API.getRate() * 2 - math.log(API.getRate())
+
+// With piping
+implicit class Pipe[T](v: T) extends AnyVal {
+  def |>[U](f: T => U): U = f(v)
+}
+
+val standarRate = API.getRate().|>(rate => rate * 2 - math.log(rate))
+
+// This works by doing an implicit conversion from the type of API.getRate() to
+the type of the pipe. The compiler will look for a |> on double. When it does
+not find it, it searches for an implicit conversion to convert the double into a
+type that has the pipe method.
+
+val standardRate =
+  Pipe[Double](API.getRate()).|>[Double](rate => rate * 2 - math.log(rate))
+
+Cool!
+
+start(e) |> minus401k becomes
+
+toPiped[Pay[PretaxDeductions]](start(e)).|>[Pay[PretaxDeductions]](minus401k(start(e)))
+
+// See how the value `start(e)` is "piped" into minus401k. We can continue the
+evaluation expansion and will see minus401k(start(e)) piped into minusInsurance,
+minusInsurance(minus401k(start(e))) piped into minusTax, etc. Very elegant!
+
+General rules of implicit conversion and what the compiler does
+1. The compiler sees we're trying to call method `foo` on type A
+2. It notices that type A has no such method
+3. It looks in scope for an implicit conversion from type A to a type B that has
+function `foo`.
+4. If it finds such a B, it constructs an instance of B using the provided
+instance of A and resolves `foo`.
+5. If there is no such B the compiler reports an error.
+
+How to define an implicit conversion? It must be declared with the implicit
+keyword and must either be a class that takes a single constructor argument or
+it must be a method that takes a single argument.
