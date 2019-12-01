@@ -55,8 +55,20 @@ case class ParseErrorUnsupportedCommand(command: String) extends ParseError {
 case class ParseErrorUnexpectedNonAlphabeticalToken(token: String) extends ParseError {
   val message = s"received $token but expected an alphabetical string"
 }
+case class ParseErrorMissingDefinition(word: String) extends ParseError {
+  val message = s"missing definition for supplied word: $word"
+}
 case class ParseErrorInvalidPartOfSpeech(invalid: Invalid) extends ParseError {
   val message = s"${invalid.given} is not a valid part of speech"
+}
+case class ParseErrorInvalidPercentageNumeric(float: Float) extends ParseError {
+  val message = s"${float} is not a decimal in the range (0, 1]"
+}
+case class ParseErrorInvalidExplicitNumeric(int: Int) extends ParseError {
+  val message = s"${int} must be greater than 0"
+}
+case class ParseErrorInvalidPracticeArg(arg: String) extends ParseError {
+  val message = s"${arg} is not a valid argument for starting a practice session"
 }
 
 // Why is my command line parse so outrageously complicated??!?! Because it's purely
@@ -107,11 +119,20 @@ object CommandLine {
   private def parseMultiArgCommand(argList: List[String]): Either[ParseError, Command] = {
     argList.head match {
       case `addArgName` =>
-        argList.tail.foldLeft(Right(Add(placeholder, placeholder, None)): Either[ParseError, Add])(parseAdd)
+        argList.tail.foldLeft(Right(Add(placeholder, placeholder, None)): Either[ParseError, Add])(parseAdd) match {
+          case Right(Add(word, `placeholder`, _)) => Left(ParseErrorMissingDefinition(word))
+          case valid => valid
+        }
+  
       case `modifyArgName` =>
-        argList.tail.foldLeft(Right(Modify(placeholder, placeholder, None)): Either[ParseError, Modify])(parseModify)
+        argList.tail.foldLeft(Right(Modify(placeholder, placeholder, None)): Either[ParseError, Modify])(parseModify) match {
+          case Right(Modify(word, `placeholder`, _)) => Left(ParseErrorMissingDefinition(word))
+          case valid => valid
+        }
+
       case `deleteArgName` =>
         argList.tail.foldLeft(Right(Delete(placeholder, None)): Either[ParseError, Delete])(parseDelete)
+
       case `practiceArgName` =>
         argList.tail.foldLeft(Right(Practice(None)): Either[ParseError, Practice])(parsePractice)
     }
@@ -229,7 +250,7 @@ object CommandLine {
         case word if partOfSpeech.isEmpty
         && newDefinition != placeholder
         && nextArg.startsWith("--") => partOfSpeechFromString(nextArg) match {
-          case invalid @ Invalid(_) => // TODO - match on type instead of @ ...
+          case invalid: Invalid => // TODO - match on type instead of @ ...
             Left(ParseErrorInvalidPartOfSpeech(invalid))
           case speechPart => Right(Modify(word, newDefinition, Some(speechPart)))
         }
@@ -240,15 +261,65 @@ object CommandLine {
     }
   }
 
-
+  // Assuming `vocab delete` prefix, parses `word type`, where `type` is
+  // optional.
   private def parseDelete(tentativeDelete: Either[ParseError, Delete], nextArg: String): Either[ParseError, Delete] = {
-    // TODO - implement me
-    ???
+    tentativeDelete match {
+      case Left(_) => tentativeDelete
+
+      case Right(Delete(word, partOfSpeech)) => word match {
+        case `placeholder` if !containsNonLowercaseAlphabetical(nextArg) =>
+          Right(Delete(nextArg, partOfSpeech))
+
+        case `placeholder` =>
+          Left(ParseErrorUnexpectedNonAlphabeticalToken(nextArg))
+
+        case word if partOfSpeech.isEmpty =>
+          if (nextArg.startsWith("--"))
+            partOfSpeechFromString(nextArg) match {
+              case invalid: Invalid => Left(ParseErrorInvalidPartOfSpeech(invalid))
+              case speechPart => Right(Delete(word, Some(speechPart)))
+            }
+          else
+            Left(ParseErrorInvalidPartOfSpeech(Invalid(nextArg)))
+
+        case word if !partOfSpeech.isEmpty => tentativeDelete
+
+        case _ => Left(ParseErrorUnknown())
+      }
+    }
   }
 
+  // Assuming `vocab practice` prefix, parses
   private def parsePractice(tentativePractice: Either[ParseError, Practice], nextArg: String): Either[ParseError, Practice] = {
-    // TODO - implement me
-    ???
-  }
+    tentativePractice match {
+      case Left(_) => tentativePractice
 
+      case Right(Practice(practiceSession)) => practiceSession match {
+        case None => nextArg match {
+          case `practiceAllArgName` => Right(Practice(Some(All)))
+          
+          case `practiceHalfArgName` => Right(Practice(Some(Half)))
+
+          // Here you see the limitations of this foldLeft approach of
+          // cumulative argument parsing. The cumulative parser can not look
+          // ahead :( so I have to do match to see if any of the required
+          // arguments remain placeholders
+          case intAsString if nextArg.toIntOption.isDefined => nextArg.toIntOption.get match {
+            case int if int > 0 => Right(Practice(Some(ExplicitNumeric(int))))
+            case int => Left(ParseErrorInvalidExplicitNumeric(int))
+          }
+
+          case fraction if nextArg.toFloatOption.isDefined => nextArg.toFloatOption.get match {
+            case fraction if fraction > 0 && fraction <= 1 => Right(Practice(Some(PercentageNumeric(fraction))))
+            case fraction => Left(ParseErrorInvalidPercentageNumeric(fraction))
+          }
+          
+          case _ => Left(ParseErrorInvalidPracticeArg(nextArg))
+        }
+
+        case Some(_) => tentativePractice
+      }
+    }
+  }
 }
