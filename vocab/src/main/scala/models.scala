@@ -13,51 +13,51 @@ sealed trait SpeechPart
 sealed trait PracticeSessionType
 
 // Word Types
-case object Noun                    extends SpeechPart {
+case object Noun extends SpeechPart {
   override def toString(): String = "noun"
 }
 
-case object Verb                    extends SpeechPart {
+case object Verb extends SpeechPart {
   override def toString(): String = "verb"
 }
 
-case object Pronoun                 extends SpeechPart {
+case object Pronoun extends SpeechPart {
   override def toString(): String = "pronoun"
 }
 
-case object Adjective               extends SpeechPart {
+case object Adjective extends SpeechPart {
   override def toString(): String = "adjective"
 }
 
-case object Adverb                  extends SpeechPart {
+case object Adverb extends SpeechPart {
   override def toString(): String = "adverb"
 }
 
-case object Preposition             extends SpeechPart {
+case object Preposition extends SpeechPart {
   override def toString(): String = "preposition"
 }
 
-case object Conjuction              extends SpeechPart {
+case object Conjuction extends SpeechPart {
   override def toString(): String = "conjuction"
 }
 
-case object Interjection            extends SpeechPart {
+case object Interjection extends SpeechPart {
   override def toString(): String = "interjection"
 }
 
-case class  Invalid(given: String)  extends SpeechPart
+case class Invalid(given: String) extends SpeechPart
 
 // Practice Sesssion Types
-case object All                                   extends PracticeSessionType {
+case object All extends PracticeSessionType {
   override def toString(): String = "all"
 }
-case object Half                                  extends PracticeSessionType {
+case object Half extends PracticeSessionType {
   override def toString(): String = "half"
 }
-case class  ExplicitNumeric(numWords: Int)        extends PracticeSessionType {
+case class ExplicitNumeric(numWords: Int) extends PracticeSessionType {
   override def toString(): String = numWords.toString
 }
-case class  PercentageNumeric(percentage: Float)  extends PracticeSessionType {
+case class  PercentageNumeric(percentage: Float) extends PracticeSessionType {
   override def toString(): String = percentage.toString
 }
 
