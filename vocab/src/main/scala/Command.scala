@@ -82,7 +82,7 @@ object CommandLine {
     case `adjectiveArg`                 => Adjective
     case `adverbArg`                    => Adverb
     case `prepositionArg`               => Preposition
-    case `conjunctionArg`               => Conjuction
+    case `conjunctionArg`               => Conjunction
     case `interjectionArg`              => Interjection
     case invalid                        => Invalid(invalid.substring(2))
   }
