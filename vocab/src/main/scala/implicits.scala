@@ -4,7 +4,7 @@ import models._
 
 // Implicit conversions between csv entry and data models
 
-object Interpolators {
+object Implicits {
   sealed trait ToCSVRepr {
     def toCSVRepr(): String
   }
@@ -25,13 +25,9 @@ object Interpolators {
     }
   }
 
-  sealed trait CSVReprToModel[R <: CSVRepresentable] {
-    def toModel(): R
-  }
-
   // Convert a word represented as a CSV row to an instance of Word
-  implicit class CSVReprToWord(stringRepr: String) extends CSVReprToModel[Word] {
-    override def toModel(): Word = {
+  implicit class StringReprToWord(stringRepr: String) {
+    def toWord(): Word = {
       val parts = stringRepr split ","
       val word = parts(0)
       val definition = parts(1)
@@ -44,8 +40,8 @@ object Interpolators {
     }
   }
 
-  implicit class CSVReprToPracticeSession(stringRepr: String) extends CSVReprToModel[PracticeSession] {
-    override def toModel(): PracticeSession = {
+  implicit class StringReprToPracticeSession(stringRepr: String) {
+    def toPracticeSession(): PracticeSession = {
       val parts = stringRepr split ","
       val sessionType = parts(0).toPracticeSessionType
       val numWords = parts(1).toInt
