@@ -5,60 +5,66 @@ sealed trait Command
 
 // Top of the hierarchy for parts of speech. Used to further categorize words
 // beyond the spelling of the word itself
-sealed trait SpeechPart
+sealed trait SpeechPart {
+  val asString: String
+}
+
+// Word Types
+case object Noun extends SpeechPart {
+  override val asString: String = "noun"
+}
+
+case object Verb extends SpeechPart {
+  override val asString: String = "verb"
+}
+
+case object Pronoun extends SpeechPart {
+  override val asString: String = "pronoun"
+}
+
+case object Adjective extends SpeechPart {
+  override val asString: String = "adjective"
+}
+
+case object Adverb extends SpeechPart {
+  override val asString: String = "adverb"
+}
+
+case object Preposition extends SpeechPart {
+  override val asString: String = "preposition"
+}
+
+case object Conjunction extends SpeechPart {
+  override val asString: String = "conjunction"
+}
+
+case object Interjection extends SpeechPart {
+  override val asString: String = "interjection"
+}
+
+case class Invalid(given: String) extends SpeechPart {
+  override val asString: String = "invalid"
+}
 
 // Top of the hierarchy for practice session types. Type not be the right word
 // here because really its the number of words in the practice session that
 // changes, not the form or structure of the session itself.
-sealed trait PracticeSessionType
-
-// Word Types
-case object Noun extends SpeechPart {
-  override def toString(): String = "noun"
+sealed trait PracticeSessionType {
+  val asString: String
 }
-
-case object Verb extends SpeechPart {
-  override def toString(): String = "verb"
-}
-
-case object Pronoun extends SpeechPart {
-  override def toString(): String = "pronoun"
-}
-
-case object Adjective extends SpeechPart {
-  override def toString(): String = "adjective"
-}
-
-case object Adverb extends SpeechPart {
-  override def toString(): String = "adverb"
-}
-
-case object Preposition extends SpeechPart {
-  override def toString(): String = "preposition"
-}
-
-case object Conjuction extends SpeechPart {
-  override def toString(): String = "conjuction"
-}
-
-case object Interjection extends SpeechPart {
-  override def toString(): String = "interjection"
-}
-
-case class Invalid(given: String) extends SpeechPart
 
 // Practice Sesssion Types
 case object All extends PracticeSessionType {
-  override def toString(): String = "all"
+  override val asString: String = "all"
 }
 case object Half extends PracticeSessionType {
-  override def toString(): String = "half"
+  override val asString: String = "half"
 }
 case class ExplicitNumeric(numWords: Int) extends PracticeSessionType {
-  override def toString(): String = numWords.toString
+  override val asString: String = numWords.toString
 }
 case class  PercentageNumeric(percentage: Float) extends PracticeSessionType {
-  override def toString(): String = percentage.toString
+  override val asString: String = percentage.toString
 }
 
 // Commands
