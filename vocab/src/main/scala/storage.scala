@@ -32,7 +32,7 @@ object Interpolators {
   implicit class CSVReprToWord(stringRepr: String) extends CSVReprToModel[Word] {
     override def toModel(): Word = {
       val parts = stringRepr split ","
-      Word(parts(0), parts(1), None, 0)
+      Word(parts(0), parts(1), None, 0) // TODO - this is not correct
     }
   }
 }
