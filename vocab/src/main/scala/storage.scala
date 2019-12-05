@@ -12,10 +12,10 @@ case class Storage(pathToStorage: String, wordStorage: String = "words.csv", pra
   val practiceSessionStoragePath = pathToStorage + "/" + practiceSessionStorage
 
   private var words: Seq[Word] =
-    (for (line <- Source.fromFile(wordStoragePath).getLines) yield line.toWord).toSeq
+    (for (line <- Source.fromFile(wordStoragePath).getLines) yield line.get[Word]).toSeq
 
   private var practiceSessions: Seq[PracticeSession] =
-    (for (line <- Source.fromFile(practiceSessionStoragePath).getLines) yield line.toPracticeSession).toSeq
+    (for (line <- Source.fromFile(practiceSessionStoragePath).getLines) yield line.get[PracticeSession]).toSeq
 
   def getWords: Seq[Word] = words
   def getPracticeSessions: Seq[PracticeSession] = practiceSessions

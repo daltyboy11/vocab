@@ -24,46 +24,44 @@ object Implicits {
       session.sessionType.asString + "," + session.numWords.toString + "," + session.duration.toString + "," + session.timestamp.toString + "," + session.didFinish.toString
     }
   }
-
-  // Convert a word represented as a CSV row to an instance of Word
-  implicit class StringReprToWord(stringRepr: String) {
-    def toWord(): Word = {
-      val parts = stringRepr split ","
-      val word = parts(0)
-      val definition = parts(1)
-      val speechPart = parts(2) match {
-        case "" => None
-        case speechPartStringRepr => Some(parts(2).toSpeechPart())
-      }
-      val numTimesPracticed = parts(3).toInt
-      Word(word, definition, speechPart, numTimesPracticed)
-    }
+  
+  implicit class ModelAsString(stringRepr: String) {
+    def get[T](implicit toT: String => T): T = toT(stringRepr)
   }
 
-  implicit class StringReprToPracticeSession(stringRepr: String) {
-    def toPracticeSession(): PracticeSession = {
-      val parts = stringRepr split ","
-      val sessionType = parts(0).toPracticeSessionType
+  implicit val stringToWord: String => Word = (s: String) => {
+      val parts = s split ","
+      val word = parts(0)
+      val definition = parts(1)
+      val speechPartOpt = parts(2).get[SpeechPart] match {
+        case Invalid(_) => None
+        case validSpeechPart => Some(validSpeechPart)
+      }
+      val numTimesPracticed = parts(3).toInt
+      Word(word, definition, speechPartOpt, numTimesPracticed)
+    }
+
+  implicit val stringToPracticeSession: String => PracticeSession = (s: String) => {
+      val parts = s split ","
+      val sessionType = parts(0).get[PracticeSessionType]
       val numWords = parts(1).toInt
       val duration = parts(2).toInt
       val timestamp = parts(3).toInt
       val didFinish = parts(4).toBoolean
       PracticeSession(sessionType, numWords, duration, timestamp, didFinish)
-    }
   }
 
-  implicit class StringReprToPracticeSessionType(stringRepr: String) {
-    def toPracticeSessionType(): PracticeSessionType = stringRepr match {
+  implicit val stringToPracticeSessionType: String => PracticeSessionType = (s: String) => {
+    s match {
       case All.asString => All
       case Half.asString => Half
-      case possibleInt if stringRepr.toIntOption.isDefined => ExplicitNumeric(stringRepr.toInt)
-      case possiblePercentage if stringRepr.toFloatOption.isDefined => PercentageNumeric(stringRepr.toFloat)
+      case possibleInt if s.toIntOption.isDefined => ExplicitNumeric(s.toInt)
+      case possiblePercentage if s.toFloatOption.isDefined => PercentageNumeric(s.toFloat)
     }
   }
 
-  // Convert a part of speech represented as a string to a SpeechPart instance
-  implicit class StringReprToSpeechPart(stringRepr: String) {
-    def toSpeechPart(): SpeechPart = stringRepr match {
+  implicit val stringToPartOfSpeech: String => SpeechPart = (s: String) => {
+    s match {
       case Noun.asString => Noun
       case Verb.asString => Verb
       case Pronoun.asString => Pronoun
@@ -72,7 +70,7 @@ object Implicits {
       case Preposition.asString => Preposition
       case Conjunction.asString => Conjunction
       case Interjection.asString => Interjection
-      case _ => Invalid(stringRepr)
+      case _ => Invalid(s)
     }
   }
 }

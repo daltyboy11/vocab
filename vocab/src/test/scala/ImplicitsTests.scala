@@ -13,13 +13,13 @@ class ImplicitsTests extends FunSuite {
 
   test("conversion from CSV representation to Word with part of speech") {
     assertResult(Word("ardor", "enthusiasm or passion", Some(Noun), 0)) {
-      "ardor,enthusiasm or passion,noun,0".toWord
+      "ardor,enthusiasm or passion,noun,0".get[Word]
     }
   }
 
   test("conversion from CSV representation to Word without part of speech") {
     assertResult(Word("ardor", "enthusiasm or passion", None, 0)) {
-      "ardor,enthusiasm or passion,,0".toWord
+      "ardor,enthusiasm or passion,,0".get[Word]
     }
   }
 
@@ -46,7 +46,7 @@ class ImplicitsTests extends FunSuite {
 
   test("convertsion from CSV representation to practice session") {
     assertResult(PracticeSession(All, 10, 1000, 123456789, true)) {
-      "all,10,1000,123456789,true".toPracticeSession
+      "all,10,1000,123456789,true".get[PracticeSession]
     }
   }
 }
