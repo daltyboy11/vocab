@@ -1,16 +1,41 @@
 package commands
 
 import models._
+import speechparts._
+import storage._
 
-sealed trait Command
+sealed trait Command {
+  def run(implicit storage: Storage): Unit
+}
 
-case class  Add(word: String, definition: String, partOfSpeech: Option[SpeechPart])         extends Command
-case class  Modify(word: String, newDefinition: String, partOfSpeech: Option[SpeechPart])   extends Command
-case class  Delete(word: String, partOfSpeech: Option[SpeechPart])                          extends Command
-case class  Practice(sessionType: Option[PracticeSessionType])                              extends Command
-case object Words                                                                           extends Command
-case object Help                                                                            extends Command
-case object NoArgs                                                                          extends Command
-case object Version                                                                         extends Command
+case class Add(word: String, definition: String, partOfSpeech: Option[SpeechPart]) extends Command {
+  def run(implicit storage: Storage): Unit = ???
+}
 
+case class Modify(word: String, newDefinition: String, partOfSpeech: Option[SpeechPart]) extends Command {
+  def run(implicit storage: Storage): Unit = ???
+}
 
+case class Delete(word: String, partOfSpeech: Option[SpeechPart]) extends Command {
+  def run(implicit storage: Storage): Unit = ???
+}
+
+case class Practice(sessionType: Option[PracticeSessionType]) extends Command {
+  def run(implicit storage: Storage): Unit = ???
+}
+
+case object Words extends Command {
+  def run(implicit storage: Storage): Unit = ???
+}
+
+case object Help extends Command {
+  def run(implicit storage: Storage): Unit = ???
+}
+
+case object NoArgs extends Command {
+  def run(implicit storage: Storage): Unit = ???
+}
+
+case object Version extends Command {
+  def run(implicit storage: Storage): Unit = ???
+}

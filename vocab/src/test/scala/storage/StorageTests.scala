@@ -2,6 +2,7 @@ import org.scalatest.FunSuite
 
 import models._
 import storage._
+import speechparts._
 
 class StorageTests extends FunSuite {
 

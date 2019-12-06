@@ -1,6 +1,7 @@
 package commandlineparser
 
 import models._
+import speechparts._
 import commands._
 
 // Why is my command line parse so outrageously complicated??!?! Because it's purely
