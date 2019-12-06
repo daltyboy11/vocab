@@ -1,8 +1,5 @@
 package models
 
-// Top of the hierarchy for supported commands
-sealed trait Command
-
 // Top of the hierarchy for parts of speech. Used to further categorize words
 // beyond the spelling of the word itself
 sealed trait SpeechPart {
@@ -66,16 +63,6 @@ case class ExplicitNumeric(numWords: Int) extends PracticeSessionType {
 case class  PercentageNumeric(percentage: Float) extends PracticeSessionType {
   override val asString: String = percentage.toString
 }
-
-// Commands
-case class  Add(word: String, definition: String, partOfSpeech: Option[SpeechPart])         extends Command
-case class  Modify(word: String, newDefinition: String, partOfSpeech: Option[SpeechPart])   extends Command
-case class  Delete(word: String, partOfSpeech: Option[SpeechPart])                          extends Command
-case class  Practice(sessionType: Option[PracticeSessionType])                              extends Command
-case object Words                                                                           extends Command
-case object Help                                                                            extends Command
-case object NoArgs                                                                          extends Command
-case object Version                                                                         extends Command
 
 // Data Models
 sealed trait CSVRepresentable

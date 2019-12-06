@@ -1,6 +1,7 @@
 package commandlineparser
 
 import models._
+import commands._
 
 // Why is my command line parse so outrageously complicated??!?! Because it's purely
 // functional, and (I hope) somewhat extensible.

@@ -1,6 +1,7 @@
 package implicits
 
 import models._
+import commands._
 
 // Implicit conversions between csv entry and data models
 
