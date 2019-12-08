@@ -1,8 +1,6 @@
 import org.scalatest.FunSuite
 import commandlineparser._
 import models._
-import speechparts._
-import commands._
 
 class ParseAddTests extends FunSuite {
   test("Add no part of speech") {

@@ -1,7 +1,7 @@
 import org.scalatest.FunSuite
 import commandlineparser._
+
 import models._
-import commands._
 
 class ParsePracticeTests extends FunSuite {
   test("Parse practice invalid argument") {

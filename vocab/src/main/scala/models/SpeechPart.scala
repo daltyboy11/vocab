@@ -1,4 +1,4 @@
-package speechparts 
+package models
 
 sealed trait SpeechPart {
   val asString: String

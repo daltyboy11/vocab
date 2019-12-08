@@ -1,7 +1,5 @@
-package commands
+package models
 
-import models._
-import speechparts._
 import storage._
 
 sealed trait Command {

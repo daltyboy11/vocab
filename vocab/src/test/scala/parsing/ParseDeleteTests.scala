@@ -1,8 +1,6 @@
 import org.scalatest.FunSuite
 import commandlineparser._
 import models._
-import commands._
-import speechparts._
 
 class ParseDeleteTests extends FunSuite {
   test("Parse delete invalid word") {

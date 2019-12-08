@@ -1,7 +1,6 @@
 import org.scalatest.FunSuite
 import models._
 import implicits._
-import speechparts._
 
 class ImplicitsTests extends FunSuite {
   import Implicits._

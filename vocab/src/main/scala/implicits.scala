@@ -1,8 +1,6 @@
 package implicits
 
 import models._
-import commands._
-import speechparts._
 
 // Implicit conversions between csv entry and data models
 

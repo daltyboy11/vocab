@@ -1,7 +1,6 @@
 import org.scalatest.FunSuite
 import commandlineparser._
 import models._
-import commands._
 
 class CommandLineParserTests extends FunSuite {
   test("attempt to use unsupported command") {
