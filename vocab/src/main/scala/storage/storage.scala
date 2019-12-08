@@ -3,10 +3,10 @@ package storage
 import scala.io.Source
 import java.io._
 import models._
-import implicits._
 
 case class Storage(pathToStorage: String, wordStorage: String = "words.csv", practiceSessionStorage: String = "practice_sessions.csv") {
-  import Implicits._
+
+  import models.implicits._
 
   val wordStoragePath = pathToStorage + "/" + wordStorage
   val practiceSessionStoragePath = pathToStorage + "/" + practiceSessionStorage

@@ -1,9 +1,8 @@
 import org.scalatest.FunSuite
 import models._
-import implicits._
 
 class ImplicitsTests extends FunSuite {
-  import Implicits._
+  import models.implicits._
 
   test("conversion from word to CSV representation") {
     assertResult("ardor,enthusiasm or passion,noun,0") {
