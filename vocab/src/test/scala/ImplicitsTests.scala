@@ -1,7 +1,7 @@
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import models._
 
-class ImplicitsTests extends FunSuite {
+class ImplicitsTests extends AnyFunSuite {
   import models.implicits._
 
   test("conversion from word to CSV representation") {

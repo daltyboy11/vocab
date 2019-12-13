@@ -1,8 +1,8 @@
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import commandlineparser._
 import models._
 
-class CommandLineParserTests extends FunSuite {
+class CommandLineParserTests extends AnyFunSuite {
   test("attempt to use unsupported command") {
     val args = "vocab drink a cup of tea"
     assertResult(Left(ParseErrorUnsupportedCommand("drink"))) {

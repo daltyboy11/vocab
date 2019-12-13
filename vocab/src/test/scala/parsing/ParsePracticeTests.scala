@@ -1,9 +1,9 @@
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import commandlineparser._
 
 import models._
 
-class ParsePracticeTests extends FunSuite {
+class ParsePracticeTests extends AnyFunSuite {
   test("Parse practice invalid argument") {
     val args = "vocab practice I think therefore I am"
     assertResult(Left(ParseErrorInvalidPracticeArg("I"))) {

@@ -1,4 +1,4 @@
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
-class ModifyCommandTests extends FunSuite {
+class ModifyCommandTests extends AnyFunSuite {
 }

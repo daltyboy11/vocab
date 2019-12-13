@@ -1,8 +1,8 @@
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import commandlineparser._
 import models._
 
-class ParseDeleteTests extends FunSuite {
+class ParseDeleteTests extends AnyFunSuite {
   test("Parse delete invalid word") {
     val args = "vocab delete not_a_word"
     assertResult(Left(ParseErrorUnexpectedNonAlphabeticalToken("not_a_word"))) {

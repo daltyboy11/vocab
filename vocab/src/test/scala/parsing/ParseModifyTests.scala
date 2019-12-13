@@ -1,8 +1,8 @@
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import commandlineparser._
 import models._
 
-class ParseModifyTests extends FunSuite {
+class ParseModifyTests extends AnyFunSuite {
   test("Modify no part of speech") {
     val args = "vocab modify cat the best friend of man"
     assertResult(Right(Modify("cat", "the best friend of man", None))) {

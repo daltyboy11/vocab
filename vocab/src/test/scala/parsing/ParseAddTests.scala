@@ -1,8 +1,8 @@
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import commandlineparser._
 import models._
 
-class ParseAddTests extends FunSuite {
+class ParseAddTests extends AnyFunSuite {
   test("Add no part of speech") {
     val args = "vocab add ardor enthusiasm or passion"
     assertResult(Right(Add("ardor", "enthusiasm or passion", None))) {

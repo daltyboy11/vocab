@@ -1,9 +1,9 @@
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 import models._
 import storage._
 
-class StorageTests extends FunSuite {
+class StorageTests extends AnyFunSuite {
 
   val projectDir = System.getProperty("user.dir")
 
