@@ -13,28 +13,25 @@ object Application {
   }
 }
 
-case class Application[S <: Application.State](storage: Storage, command: Option[Command] = None, error: Option[ParseError] = None) { 
-
+case class Application[S <: Application.State](command: Option[Command] = None, error: Option[ParseError] = None) { 
   import Application.State._
   import commandlineparser._
 
-  implicit val s = storage
-
-  def parseArgs(args: Seq[String])(implicit ev: S =:= ParseArgs): Application[RunCommand] = CommandLine.parseArgs(args mkString " ") match {
-    case Left(e) => Application(storage, None, Some(e))
-    case Right(c) => Application(storage, Some(c))
-  }
-
-  def runCommand(implicit ev: S =:= RunCommand): Application[PostCommand] =
-    if (command.isDefined) {
-      command.get.run
-      Application(storage, command)
-    } else {
-      println(error.get.message)
-      Application(storage, None, error)
+  def parseArgs(args: Seq[String])(implicit ev: S =:= ParseArgs, storage: Storage): Application[RunCommand] =
+    CommandLine.parseArgs(args mkString " ") match {
+      case Left(e) => Application(None, Some(e))
+      case Right(c) => Application(Some(c))
     }
 
-  def postCommand(implicit ev: S =:= PostCommand): Application[PostCommand] = {
-    Application(storage, command, error)
-  }
+  def runCommand(implicit ev: S =:= RunCommand, storage: Storage): Application[PostCommand] =
+    if (command.isDefined) {
+      command.get.run
+      Application(command)
+    } else {
+      println(error.get.message)
+      Application(None, error)
+    }
+
+  def postCommand(implicit ev: S =:= PostCommand, storage: Storage): Application[PostCommand] =
+    Application(command, error)
 }
