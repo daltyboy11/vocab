@@ -33,20 +33,23 @@ case class Practice(sessionType: Option[PracticeSessionType]) extends Command {
 
 case object Words extends Command {
 
+  implicit val maxColumnWidth = 35
+
+  val wordsColumnTitle = "Words"
+  val definitionColumnTitle = "Definition"
+  val partOfSpeechColumnTitle = "Part of Speech"
+  val timesPracticedColumnTitle = "Times Practiced"
+
   def splitDefinition(definition: Seq[String])(implicit maxColumnWidth: Int): Seq[String] = {
     @tailrec
     def splitDefinitionAcc(definition: Seq[String], result: Seq[String]): Seq[String] = {
-      val headAndTail = definition.foldLeft((Array.empty[String], Array.empty[String])) { (headAndTailAcc, word) =>
-        // TODO - carry the total length of elements in the head through the
-        // fold left to avoid recomputation
-        val numWhitespaceChars = headAndTailAcc._1.length - 1
-        // TODO - carry the total num of chars in head through the fold left to
-        // avoid recomputation
-        val totalCharsOnLine = numWhitespaceChars + headAndTailAcc._1.map(_.length).reduce(_ + _)
-        if (totalCharsOnLine + word.length + 1 < maxColumnWidth) {
-          (headAndTailAcc._1 :+ word, headAndTailAcc._2)
+      val headAndTail = definition.foldLeft((Seq.empty[String], Seq.empty[String])) { case ((head, tail), word) =>
+        val numWhitespaceChars = if (head.length > 1) head.length - 1 else 0
+        val totalCharsOnLine = numWhitespaceChars + (if (head.length > 0) head.map(_.length).reduce(_ + _) else 0)
+        if (totalCharsOnLine + word.length + 1 <= maxColumnWidth) {
+          (head :+ word, tail)
         } else {
-          (headAndTailAcc._1, headAndTailAcc._2 :+ word)
+          (head, tail :+ word)
         }
       }
 
@@ -57,52 +60,82 @@ case object Words extends Command {
         splitDefinitionAcc(headAndTail._2, result ++ List(headAndTail._1.mkString(" ")))
       }
     }
-    splitDefinitionAcc(definition, Array.empty[String])
+    splitDefinitionAcc(definition, Seq.empty[String])
   }
-
-  def run(implicit storage: Storage): Unit = {
-    implicit val maxColumnWidth = 35
-
+  
+  def generateTable(implicit storage: Storage): Seq[String] = {
     val words = storage.getWords
-    val maxWordLength = words.map(_.word.length).max
-    val maxNumDigits = words.map(_.numTimesPracticed.toString.length).max
-    val maxLengthPartOfSpeech = Interjection.asString.length
+    val wordColumnWidth = words.map(_.word.length).max
+    val definitionColumnWidth = this.maxColumnWidth
+    val partOfSpeechColumnWidth = this.partOfSpeechColumnTitle.length
+    val timesPracticedColumnWidth = this.timesPracticedColumnTitle.length
 
-    // The first has the word, num times practiced, speech part, and the first
-    // part of the definition. The rest of the lines are just the definition
-    val lines = for {
-      word <- words
-      partOfSpeech = if (word.partOfSpeech.isDefined) word.partOfSpeech.get.asString else ""
-      (definitionPart, index) <- splitDefinition(word.definition.split(" ")).zipWithIndex
-    } yield {
-      if (index == 0) {
-        "| " +
-        word.word +
-        " " * (maxWordLength - word.word.length) +
-        " | " +
-        definitionPart +
-        " " * (maxColumnWidth - definitionPart.length) +
-        "| " +
-        partOfSpeech +
-        " " * (maxLengthPartOfSpeech - partOfSpeech.length) +
-        " | " +
-        word.numTimesPracticed.toString +
-        " " * (maxNumDigits - word.numTimesPracticed.toString.length) +
-        " |\n"
-      } else {
-        "|" +
-        " " * (maxWordLength + 2) +
-        definitionPart + " " * (maxColumnWidth - definitionPart.length) +
-        "|" +
-        " " * (maxLengthPartOfSpeech + 2) +
-        "|" +
-        " " * (maxNumDigits + 2) +
-        "|\n"
+    val header = "| " +
+                 "word" + " " * (wordColumnWidth - "word".length) +
+                 " | " +
+                 "definition" + " " * (definitionColumnWidth - "definition".length) +
+                 " | " +
+                 "part of speech" + " " * (partOfSpeechColumnWidth - "part of speech".length) +
+                 " | " +
+                 "times practiced" + " " * (timesPracticedColumnWidth - "times practiced".length) +
+                 " |"
+
+    // 8 for whitespace, 5 for vertical lines
+    val endBorder = "-" * (wordColumnWidth + definitionColumnWidth + partOfSpeechColumnWidth + timesPracticedColumnWidth + 8 + 5) 
+
+    val middleBorder = "|" + "-" * (wordColumnWidth + 2) +
+                       "|" + "-" * (definitionColumnWidth + 2) +
+                       "|" + "-" * (partOfSpeechColumnWidth + 2) +
+                       "|" + "-" * (timesPracticedColumnWidth + 2) +
+                       "|"
+
+    val lines = words.zipWithIndex flatMap { case (word, wordIndex) =>
+      val partOfSpeech = if (word.partOfSpeech.isDefined) word.partOfSpeech.get.asString else ""
+      val definitionLines = splitDefinition(word.definition.split(" "))
+      definitionLines.zipWithIndex flatMap { case (definitionLine, definitionIndex) =>
+        val line = if (definitionIndex == 0) {
+          "| " +
+          word.word +
+          " " * (wordColumnWidth - word.word.length) +
+          " | " +
+          definitionLine +
+          " " * (definitionColumnWidth - definitionLine.length) +
+          " | " +
+          partOfSpeech +
+          " " * (partOfSpeechColumnWidth - partOfSpeech.length) +
+          " | " +
+          word.numTimesPracticed.toString +
+          " " * (timesPracticedColumnWidth - word.numTimesPracticed.toString.length) +
+          " |"
+        } else {
+          "| " +
+          " " * wordColumnWidth +
+          " | " +
+          definitionLine +
+          " " * (definitionColumnWidth - definitionLine.length) +
+          " | " +
+          " " * partOfSpeechColumnWidth +
+          " | " +
+          " " * timesPracticedColumnWidth +
+          " |"
+        }
+        if (wordIndex == words.length - 1 && definitionIndex == definitionLines.length - 1) {
+          // Last word and last definition line yield the line + endborder
+          Seq(line, endBorder)
+        } else if (definitionIndex == definitionLines.length - 1) {
+          // Last definition line but not last word yield the line + middleborder
+          Seq(line, middleBorder)
+        } else {
+          // Yield just the line
+          Seq(line)
+        }
       }
     }
 
-    lines foreach println
+    Seq(endBorder, header, middleBorder) ++ lines
   }
+
+  def run(implicit storage: Storage): Unit = generateTable foreach println 
 }
 
 case object Help extends Command {
