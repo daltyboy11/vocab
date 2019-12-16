@@ -1,4 +1,2 @@
-import org.scalatest.funsuite.AnyFunSuite
-
-class DeleteCommandTests extends AnyFunSuite {
+class DeleteCommandTests extends BaseCommandTests {
 }

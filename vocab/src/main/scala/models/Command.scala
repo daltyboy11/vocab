@@ -9,7 +9,11 @@ sealed trait Command {
 
 case class Add(word: String, definition: String, partOfSpeech: Option[SpeechPart]) extends Command {
   def run(implicit storage: Storage): Unit = {
-    // TODO
+    if (storage.addWord(Word(word, definition, partOfSpeech, 0))) {
+      storage.commit
+    } else {
+      // TODO - word already exists
+    }
   }
 }
 

@@ -1,23 +1,7 @@
-import org.scalatest.funsuite.AnyFunSuite
-import java.io._
-
 import models._
 import storage._
 
-class WordsCommandTests extends AnyFunSuite {
-  val projectDir = System.getProperty("user.dir")
-
-  private def writeToFile(s: String, fileName: String): Unit = {
-    val file = new File(s"${projectDir}/src/test/scala/commands/$fileName")
-    val bw = new BufferedWriter(new FileWriter(file))
-    bw.write(s)
-    bw.close()
-  }
-
-  def makeStorage = Storage(s"${projectDir}/src/test/scala/commands",
-    "words_read_only.csv",
-    "practice_sessions_read_only.csv")
-
+class WordsCommandTests extends BaseCommandTests {
   test("split definition 1") {
     implicit val maxColumnWidth = 35
     val definition = Seq(
@@ -52,8 +36,8 @@ class WordsCommandTests extends AnyFunSuite {
     }
   }
 
-  test("vocab words") {
-    implicit val storage = makeStorage
+  test("vocab words one") {
+    implicit val storage = makeStorage("words_read_only.csv", "practice_sessions_read_only.csv")
     val expected = List(
     "------------------------------------------------------------------------------------------",
     "| word          | definition                          | part of speech | times practiced |",
