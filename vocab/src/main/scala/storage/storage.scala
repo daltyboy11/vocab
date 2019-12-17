@@ -23,7 +23,7 @@ case class Storage(pathToStorage: String, wordStorage: String = "words.csv", pra
   def addWord(word: Word): Boolean = {
     val willAdd = words.contains(word)
     words = words :+ word
-    willAdd
+    !willAdd
   }
 
   def addPracticeSession(session: PracticeSession): Boolean = {
@@ -37,7 +37,7 @@ case class Storage(pathToStorage: String, wordStorage: String = "words.csv", pra
       val file = new File(filename)
       val bufferedWriter = new BufferedWriter(new FileWriter(file))
       for (line <- lines) {
-        bufferedWriter.write(line)
+        bufferedWriter.write(line + "\n")
       }
       bufferedWriter.close()
     }

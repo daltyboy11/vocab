@@ -11,8 +11,19 @@ case class Add(word: String, definition: String, partOfSpeech: Option[SpeechPart
   def run(implicit storage: Storage): Unit = {
     if (storage.addWord(Word(word, definition, partOfSpeech, 0))) {
       storage.commit
+      val consoleOutput = if (partOfSpeech.isDefined) {
+        s"Added $word - ${partOfSpeech.get.asString}"
+      } else {
+        s"Added $word"
+      }
+      println(consoleOutput)
     } else {
-      // TODO - word already exists
+      val consoleOutput = if (partOfSpeech.isDefined) {
+        s"An entry for $word - ${partOfSpeech.get.asString} already exists!"
+      } else {
+        s"An entry for $word already exists!"
+      }
+      println(consoleOutput)
     }
   }
 }

@@ -1,4 +1,5 @@
 import org.scalatest.funsuite.AnyFunSuite
+import scala.util.Random
 import java.io._
 import scala.io.Source
 
@@ -25,4 +26,16 @@ class BaseCommandTests extends AnyFunSuite {
     (for (line <- Source.fromFile(fileName).getLines) yield line.get[Word]).toSeq
   }
 
+  def makeFileCopy(file: String): String = {
+    val fullyQualifiedPath = s"${projectDir}/src/test/scala/commands/$file"
+    val destinationSuffix = Random.alphanumeric.take(10).mkString("")
+    val fullyQualifiedDestination = fullyQualifiedPath + destinationSuffix
+    val src = new File(fullyQualifiedPath)
+    val dest = new File(fullyQualifiedDestination)
+    new FileOutputStream(dest).getChannel().transferFrom(
+      new FileInputStream(src).getChannel(), 0, Long.MaxValue)
+    file + destinationSuffix
+  }
+
+  def deleteFile(file: String) = { new File(s"${projectDir}/src/test/scala/commands/$file").delete() }
 }
