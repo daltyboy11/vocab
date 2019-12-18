@@ -9,22 +9,40 @@ sealed trait Command {
 
 case class Add(word: String, definition: String, partOfSpeech: Option[SpeechPart]) extends Command {
   def run(implicit storage: Storage): Unit = {
-    if (storage.addWord(Word(word, definition, partOfSpeech, 0))) {
-      storage.commit
-      val consoleOutput = if (partOfSpeech.isDefined) {
-        s"Added $word - ${partOfSpeech.get.asString}"
-      } else {
-        s"Added $word"
+    val words = storage.getWords
+    val wordToAdd = Word(word, definition, partOfSpeech, 0)
+    val addMessage = if (partOfSpeech.isDefined) s"$word - ${partOfSpeech.get} added" else s"$word added"
+    val dupes = words filter (word => word.word == word)
+
+    // If our partOfSpeech is None then no entry can exist for word
+    // If our partOfSpeech is Some then the word can be added if there is no
+    // word with None AND the word with the same Some does not exist.
+    val consoleOutput = partOfSpeech match {
+      case None => {
+        if (dupes.isEmpty) {
+          storage.addWord(wordToAdd)
+          addMessage
+        } else {
+          val dupe = dupes.head
+          dupe.partOfSpeech match {
+            case None => s"${dupe.word} already exists"
+            case Some(speechPart) => s"You can't add ${dupe.word} without part of speech because ${dupe.word} - ${speechPart} already exists"
+          }
+        }
       }
-      println(consoleOutput)
-    } else {
-      val consoleOutput = if (partOfSpeech.isDefined) {
-        s"An entry for $word - ${partOfSpeech.get.asString} already exists!"
-      } else {
-        s"An entry for $word already exists!"
+      case Some(speechPart) => {
+        if (dupes map (_.partOfSpeech) contains None) {
+          s"You can't add $word - $speechPart because $word without a part of speech already exists"
+        } else if (dupes map (_.partOfSpeech) contains partOfSpeech) {
+          s"You can't add $word - $speechPart because $word - $speechPart already exists"
+        } else {
+          storage.addWord(wordToAdd)
+          addMessage
+        }
       }
-      println(consoleOutput)
     }
+    
+    println(consoleOutput)
   }
 }
 

@@ -35,3 +35,6 @@ build
 # metals
 *.bloop
 *.metals
+
+# testing
+*.csv

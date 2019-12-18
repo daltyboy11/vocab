@@ -8,7 +8,6 @@ class DeleteCommandTests extends BaseCommandTests with BeforeAndAfter {
   }
 
   test("delete existing word") {
-    // TODO
     val testDeleteWordsCopy = makeFileCopy("test_delete_words.csv")
     copyFiles += testDeleteWordsCopy
   }
