@@ -12,7 +12,7 @@ case class Add(word: String, definition: String, partOfSpeech: Option[SpeechPart
     val words = storage.getWords
     val wordToAdd = Word(word, definition, partOfSpeech, 0)
     val addMessage = if (partOfSpeech.isDefined) s"$word - ${partOfSpeech.get} added" else s"$word added"
-    val dupes = words filter (word => word.word == word)
+    val dupes = words filter (_.word == word)
 
     // If our partOfSpeech is None then no entry can exist for word
     // If our partOfSpeech is Some then the word can be added if there is no
@@ -21,6 +21,7 @@ case class Add(word: String, definition: String, partOfSpeech: Option[SpeechPart
       case None => {
         if (dupes.isEmpty) {
           storage.addWord(wordToAdd)
+          storage.commit
           addMessage
         } else {
           val dupe = dupes.head
@@ -37,6 +38,7 @@ case class Add(word: String, definition: String, partOfSpeech: Option[SpeechPart
           s"You can't add $word - $speechPart because $word - $speechPart already exists"
         } else {
           storage.addWord(wordToAdd)
+          storage.commit
           addMessage
         }
       }
