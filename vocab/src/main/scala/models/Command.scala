@@ -56,7 +56,25 @@ case class Modify(word: String, newDefinition: String, partOfSpeech: Option[Spee
 
 case class Delete(word: String, partOfSpeech: Option[SpeechPart]) extends Command {
   def run(implicit storage: Storage): Unit = {
-    // TODO
+    val words = storage.getWords
+    val dupes = words filter (_.word == word)
+    val consoleOutput = partOfSpeech match {
+      case None => if (dupes.isEmpty) {
+        s"$word not found"
+      } else {
+        storage.deleteWords(word)
+        storage.commit
+        s"$word deleted"
+      }
+      case Some(speechPart) => if (dupes.isEmpty) {
+        s"$word not found"
+      } else {
+        storage.deleteWord(word, speechPart)
+        storage.commit
+        s"$word deleted"
+      }
+    }
+    println(consoleOutput)
   }
 }
 
