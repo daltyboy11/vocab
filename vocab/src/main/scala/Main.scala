@@ -8,5 +8,5 @@ object Main extends App {
   implicit val storage: Storage = ???
   val app = Application[Application.State.ParseArgs]()
 
-  app.parseArgs(List("Hello, World!")).runCommand.postCommand
+  app.parseArgs(List("Hello, World!")).runCommand
 }

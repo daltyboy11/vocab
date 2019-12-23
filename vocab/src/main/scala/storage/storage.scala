@@ -30,16 +30,20 @@ case class Storage(pathToStorage: String, wordStorage: String = "words.csv", pra
     willAdd
   }
 
-  /**
-   * Deletes the given word + speech part pair from the word repository. If no
-   * speech part is given then all words of the given name are deleted. If a
-   * speech part is given then only the specific word + speech part pair is
-   * deleted.
-   *
-   * @return the set of words that were deleted.
-   */
-  def deleteWord(word: String, partOfSpeech: Some[SpeechPart]): Set[Word] = {
-    ???
+  def deleteWords(word: String): Unit = {
+    val newWords = words filter {
+      case Word(word, _, _, _) => false
+      case _ => true
+    }
+    words = newWords
+  }
+
+  def deleteWord(word: String, partOfSpeech: SpeechPart): Unit = {
+    val newWords = words filter {
+      case Word(word, _, Some(partOfSpeech), _) => false
+      case _ => true
+    }
+    words = newWords
   }
 
   def commit(): Unit = {

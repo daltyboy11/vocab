@@ -31,7 +31,4 @@ case class Application[S <: Application.State](command: Option[Command] = None, 
       println(error.get.message)
       Application(None, error)
     }
-
-  def postCommand(implicit ev: S =:= PostCommand, storage: Storage): Application[PostCommand] =
-    Application(command, error)
 }
