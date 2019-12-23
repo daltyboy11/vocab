@@ -30,22 +30,24 @@ case class Storage(pathToStorage: String, wordStorage: String = "words.csv", pra
     willAdd
   }
 
+  /** Deletes all words matching `word`
+   */
   def deleteWords(word: String): Unit = {
-    val newWords = words filter {
-      case Word(word, _, _, _) => false
-      case _ => true
-    }
-    words = newWords
+    val wordsToDelete = words filter (_.word == word)
+    words = words filterNot wordsToDelete.contains
   }
 
+  /** Deletes the word matching `word` and the given part of speech
+   */
   def deleteWord(word: String, partOfSpeech: SpeechPart): Unit = {
-    val newWords = words filter {
-      case Word(word, _, Some(partOfSpeech), _) => false
-      case _ => true
-    }
-    words = newWords
+    val wordsToDelete = words filter (w => w.word == word && w.partOfSpeech == Some(partOfSpeech))
+    words = words filterNot wordsToDelete.contains
   }
 
+  /** Saves the in-memory words to persistent storage. Call this function to
+   *  make saves to persist any changes after calling methods defined in this
+   *  class.
+   */
   def commit(): Unit = {
     def writeFile(filename: String, lines: Seq[String]): Unit = {
       val file = new File(filename)
