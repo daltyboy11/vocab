@@ -50,7 +50,16 @@ case class Add(word: String, definition: String, partOfSpeech: Option[SpeechPart
 
 case class Modify(word: String, newDefinition: String, partOfSpeech: Option[SpeechPart]) extends Command {
   def run(implicit storage: Storage): Unit = {
-    // TODO
+    val words = storage.getWords
+    val exists = words.filter(w => w.word == word && w.partOfSpeech == partOfSpeech).nonEmpty
+    val consoleOutput = if (exists) {
+      storage.setWord(word, newDefinition, partOfSpeech)
+      storage.commit
+      s"modified $word"
+    } else {
+      s"$word not found"
+    }
+    println(consoleOutput)
   }
 }
 

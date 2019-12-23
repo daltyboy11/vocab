@@ -30,6 +30,17 @@ case class Storage(pathToStorage: String, wordStorage: String = "words.csv", pra
     willAdd
   }
 
+  /** Modifies an existing word. Assumes the word exists and will cause a
+   *  runtime error if it doesn't
+   */
+  def setWord(word: String, newDefinition: String, partOfSpeech: Option[SpeechPart]): Unit = {
+    val (oldWord, index) = words.zipWithIndex.filter {
+      case (w, _) => w.word == word && w.partOfSpeech == partOfSpeech
+    }.head
+    val newWord = Word(word, newDefinition, partOfSpeech, oldWord.numTimesPracticed)
+    words = words.updated(index, newWord)
+  }
+
   /** Deletes all words matching `word`
    */
   def deleteWords(word: String): Unit = {
