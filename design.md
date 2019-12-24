@@ -1,4 +1,4 @@
-The Design and Specification for the vocab command line tool
+Motivation, design, and specification for the vocab utility
 
 # Motivation
 I recently took the course Learning how To Learn on Coursera. Shortly before
@@ -58,65 +58,90 @@ powerful learning techniques, review
 # V1 Features
 The most basic feature set.
 
-## `vocab help`
+## Show help
+`vocab help`
 displays the man page.
 
-## `vocab add word definition [type]`
+## Add a word
+`vocab add <word> <definition> [--type type]`
 adds `word` to your practice set with the provided `definition`.
-
 type = noun | verb | pronoun | adjective | adverb | preposition | conjuction | interjection
 
-you must specify the type when adding homonyms. For example, "play" could refer
+If you would like to add homonyms, the type must be specified. For example, "play" could refer
 to the verb "to play" but it could also refer to a play you see in a theatre. To
 add them both you may do the following:
 
-`vocab add word play verb`
-`vocab add word play noun`
+`vocab add play to take part in a game --type verb`
+`vocab add play a dramatic work for the stage --type noun`
 
-## `vocab words`
-lists all the words in your repetoire along with their definition and number of
-times rehearsed.
+If you already added "play" without a type, i.e.
+`vocab add play to take part in a game`
+but would like to add another word for "play" you must first use the `modify`
+command to add a type to the existing "play".
 
-## `vocab modify word definition`
-changes the current definition of `word` to be `definition`.
+## List the words
+`vocab words`
+List all the words in your repertoire.
 
-## `vocab delete word`
-deletes `word`, if it exists.
+## Modify a word
+`vocab modify <word> <newDefinition> [--type type]`
+Replace the definition for an existing word
 
-## `vocab practice [ all | half | n ]`
-start a study session with either all, half, or a specific number (n) of words.
+## Show version
+`vocab version`
+Display the program's version number.
 
-### interactive practice
-the following commands are available to you during your study session:
+## Delete word(s)
+`vocab delete <word> [--type type]`
+deletes the words that match <word> and the optional type. If the type is not
+specified, all words matching <word> are deleted.
 
-- `r` | `recalled`: go to the next word after you successfully recall the current word's definition and/or used it in a sentence.
-- `f` | `forgot`: move on to the next word after you failed to recall the current word's definition and/or used it in a sentence.
-- `s` | `show`: show the definition of the word.
-- `q` | `quit`: quit the study session.
+## Practice your words
+`vocab practice [ all | half | n | p ]`
+Launches a study session with an optional argument to control the number of
+words in the session
+- `all`: practice all words
+- `half`: practice half of all words
+- `n`: practice n words, where n is positive integer
+- `p`: practice a proportion of all words, where p is in (0.0, 1.0]
 
-## suggested method of practice
-At each word, recite the definition and use it in a sentence, then move on to
-the next word using either the `r` or `f` command. Use the `s` command to reveal the
-definition for confirmation of your knowledge or because you forgot the
-definition.
+### Interactive practice - how it works
+Launching a practice session makes the program interactive.
 
-## word selection for study sessions
-Words are selected based on a weighted probability, where the weight of the word
-is the inverse of how many times it has been rehearsed before.
+A word will be presented without its definition. At this point you should
+attempt to recall its definition and/or use it in a sentence. When you are
+satisfied with your attempt, use one of the commands to move on to the next word
+or quit the session. To finish a session you must successfully recall each word
+three times.
 
-From the set of all words randomly select any words with a practice count of 0 either until there are no more
-words with a frequency of 0 or the practice set is full.
+#### Available commands
+The following commands are available to you during the practice session
 
-If the practice set is full, we are done.
+- `r | recalled`: go to the next word after you successfully recall the current word's definition and/or used it in a sentence.
+- `f | forgot`: move on to the next word after you failed to recall the current word's definition and/or used it in a sentence.
+- `s | show`: show the current word's definition.
+- `q | quit`: quit the practice session 
 
-If the practice set is not full assign a value of 1 / (practice count) to each
+## How are words selected for a practice session?
+If you have added words that have **never** been practice before these will be
+selected first (at random from the set of all words that have never been
+practiced). If the practice set is still not full, the remaining words are
+randomly selected based on a probability weighting where the weight of the word
+is the inverse of how many times it has been rehearsed before:
+
+Assign a value of 1 / (practice count) to each
 remaining word. Sum the total and divide each value by the total to get the weight.
 Compute the array of cumulative sums of the weights. Generate a random number
-between 0 and 1 and add the word associated with the range to the set. Remove
+between 0.0 and 1.0 and add the word associated with the range to the practice set. Remove
 this word from the selection pool. Repeat until the set is full.
 
 ### Note on the selection algorithm
 If m is the number of words needed for the practice session and n is the total
-number of words then the selection algorithm is O(m * n). For now this is fine,
-as I don't anticipate word lists getting very large. But is there a more
-efficient method to do this?
+number of words then the selection algorithm is O(m * n). I believe this will
+work in practice because the total word set should not get too large. As a user
+becomes so familiar with a word that they no longer practice it, they will
+delete it from the set. Furthermore, the rate at which users will learn new
+words is small, even if they read a lot (words are expected to be added
+organically as the user reads material while going about their daily lives...
+this tool is **NOT** intended for someone to simply dump a dictionary into the
+program and start practicing).
