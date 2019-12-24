@@ -1,14 +1,37 @@
 package models
 
 import scala.annotation.tailrec
+import scala.util.Random
 import storage._
 
 sealed trait Command {
   def run(implicit storage: Storage): Unit
 }
 
+object Add {
+  sealed trait Result
+  object Result {
+    final case class AlreadyExistsWithSpeechPart(speechPart: SpeechPart)  extends Result
+    final object AlreadyExistsWithoutSpeechPart extends Result
+    final case class AddedWithSpeechPart(speechPart: SpeechPart) extends Result
+    final case object AddedWithoutSpeechPart extends Result
+  }
+}
+
 case class Add(word: String, definition: String, partOfSpeech: Option[SpeechPart]) extends Command {
+  import Add._
+
   def run(implicit storage: Storage): Unit = {
+    val consoleOutput = runLogic match {
+      case Result.AlreadyExistsWithSpeechPart(speechPart) => s"unable to add - $word ($speechPart) already exists"
+      case Result.AlreadyExistsWithoutSpeechPart => s"unable to add - $word already exists"
+      case Result.AddedWithSpeechPart(speechPart) => s"added $word ($speechPart)"
+      case Result.AddedWithoutSpeechPart => s"added $word"
+    }
+    println(consoleOutput)
+  }
+
+  def runLogic(implicit storage: Storage): Result = {
     val words = storage.getWords
     val wordToAdd = Word(word, definition, partOfSpeech, 0)
     val addMessage = if (partOfSpeech.isDefined) s"$word - ${partOfSpeech.get} added" else s"$word added"
@@ -17,77 +40,147 @@ case class Add(word: String, definition: String, partOfSpeech: Option[SpeechPart
     // If our partOfSpeech is None then no entry can exist for word
     // If our partOfSpeech is Some then the word can be added if there is no
     // word with None AND the word with the same Some does not exist.
-    val consoleOutput = partOfSpeech match {
+    partOfSpeech match {
       case None => {
         if (dupes.isEmpty) {
           storage.addWord(wordToAdd)
           storage.commit
-          addMessage
+          Result.AddedWithoutSpeechPart
         } else {
           val dupe = dupes.head
           dupe.partOfSpeech match {
-            case None => s"${dupe.word} already exists"
-            case Some(speechPart) => s"You can't add ${dupe.word} without part of speech because ${dupe.word} - ${speechPart} already exists"
+            case None => Result.AlreadyExistsWithoutSpeechPart
+            case Some(speechPart) => Result.AlreadyExistsWithSpeechPart(speechPart)
           }
         }
       }
       case Some(speechPart) => {
         if (dupes map (_.partOfSpeech) contains None) {
-          s"You can't add $word - $speechPart because $word without a part of speech already exists"
+          Result.AlreadyExistsWithoutSpeechPart
         } else if (dupes map (_.partOfSpeech) contains partOfSpeech) {
-          s"You can't add $word - $speechPart because $word - $speechPart already exists"
+          Result.AlreadyExistsWithSpeechPart(speechPart)
         } else {
           storage.addWord(wordToAdd)
           storage.commit
-          addMessage
+          Result.AddedWithSpeechPart(speechPart)
         }
       }
     }
-    
-    println(consoleOutput)
   }
 }
 
+object Modify {
+  sealed trait Result
+  object Result {
+    final object Modified extends Result
+    final object NotFound extends Result
+  }
+}
 case class Modify(word: String, newDefinition: String, partOfSpeech: Option[SpeechPart]) extends Command {
+  import Modify._
+
   def run(implicit storage: Storage): Unit = {
-    val words = storage.getWords
-    val exists = words.filter(w => w.word == word && w.partOfSpeech == partOfSpeech).nonEmpty
-    val consoleOutput = if (exists) {
-      storage.setWord(word, newDefinition, partOfSpeech)
-      storage.commit
-      s"modified $word"
-    } else {
-      s"$word not found"
+    val consoleOutput = runLogic match {
+      case Result.Modified => s"$word modified"
+      case Result.NotFound => s"$word not found" 
     }
     println(consoleOutput)
+  }
+
+  def runLogic(implicit storage: Storage): Result = {
+    val words = storage.getWords
+    val exists = words.filter(w => w.word == word && w.partOfSpeech == partOfSpeech).nonEmpty
+    if (exists) {
+      storage.setWord(word, newDefinition, partOfSpeech)
+      storage.commit
+      Result.Modified
+    } else {
+      Result.NotFound
+    }
+  }
+}
+
+object Delete {
+  sealed trait Result
+  object Result {
+    final object NotFound extends Result
+    final object Deleted extends Result
   }
 }
 
 case class Delete(word: String, partOfSpeech: Option[SpeechPart]) extends Command {
+  import Delete._
+
   def run(implicit storage: Storage): Unit = {
-    val words = storage.getWords
-    val dupes = words filter (_.word == word)
-    val consoleOutput = partOfSpeech match {
-      case None => if (dupes.isEmpty) {
-        s"$word not found"
-      } else {
-        storage.deleteWords(word)
-        storage.commit
-        s"$word deleted"
-      }
-      case Some(speechPart) => if (dupes.isEmpty) {
-        s"$word not found"
-      } else {
-        storage.deleteWord(word, speechPart)
-        storage.commit
-        s"$word deleted"
+    val consoleOutput = runLogic match {
+      case Result.NotFound => s"$word not found"
+      case Result.Deleted => partOfSpeech match {
+        case Some(speechPart) => s"$word - $speechPart deleted"
+        case None => s"$word deleted"
       }
     }
     println(consoleOutput)
   }
+
+  private def runLogic(implicit storage: Storage): Result = {
+    val words = storage.getWords
+    val dupes = words filter (_.word == word)
+    partOfSpeech match {
+      case None => if (dupes.isEmpty) {
+        Result.NotFound
+      } else {
+        storage.deleteWords(word)
+        storage.commit
+        Result.Deleted
+      }
+      case Some(speechPart) => if (dupes.isEmpty) {
+        Result.NotFound
+      } else {
+        storage.deleteWord(word, speechPart)
+        storage.commit
+        Result.Deleted
+      }
+    }
+  }
 }
 
 case class Practice(sessionType: Option[PracticeSessionType]) extends Command {
+  private def wordsForSession(sessionType: PracticeSessionType, allWords: Seq[Word]): Seq[Word] = {
+    val totalNumWords = allWords.length
+    val numWordsForThisSession = sessionType match {
+      case All => totalNumWords
+      case Half => totalNumWords / 2
+      case ExplicitNumeric(numWords) => numWords
+      case PercentageNumeric(percentage) => (totalNumWords.toFloat * percentage).toInt
+    }
+
+    val wordsSortedByNumTimesPracticed = allWords sortBy (_.numTimesPracticed)
+    val wordsNeverPracticed = Random.shuffle(wordsSortedByNumTimesPracticed takeWhile (_.numTimesPracticed == 0))
+    val wordsAlreadyPracticed = wordsSortedByNumTimesPracticed dropWhile (_.numTimesPracticed == 0)
+
+    def weightedSelect(wordPool: Seq[Word], wordAcc: Seq[Word], targetSize: Int): Seq[Word] = {
+      if (wordAcc.length == targetSize) {
+        wordAcc
+      } else {
+        val inversePracticeCounts = wordPool map (1.0 / _.numTimesPracticed)
+        val sumInversePracticeCounts = inversePracticeCounts reduce (_ + _)
+        val weights = inversePracticeCounts map (_ / sumInversePracticeCounts)
+        val cumulativeWeights = weights.scanLeft(0.0)(_ + _)
+        val randomDouble = Random.nextDouble()
+        // Get the index of the first element whose value is greater than or
+        // equal to randomDouble
+        /*
+        cumulativeWeights.zipWithIndex.dropWhile {
+          case (weight, index) => weight < randomDouble
+        }.head._2
+        */
+       ???
+      }
+    }
+
+    ???
+  }
+
   def run(implicit storage: Storage): Unit = {
     // TODO
   }
