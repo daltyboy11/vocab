@@ -1,13 +1,20 @@
 import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.BeforeAndAfter
 import scala.util.Random
+import scala.collection.mutable.ListBuffer
 import java.io._
 import scala.io.Source
 
 import storage._
 import models._
 
-class BaseCommandTests extends AnyFunSuite {
+class BaseCommandTests extends AnyFunSuite with BeforeAndAfter {
   import models.implicits._
+
+  protected var copyFiles = new ListBuffer[String]()
+  after {
+    copyFiles foreach deleteFile
+  }
 
   val projectDir = System.getProperty("user.dir")
   

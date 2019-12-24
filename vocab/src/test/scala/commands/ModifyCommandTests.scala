@@ -3,11 +3,6 @@ import scala.collection.mutable.ListBuffer
 import models._
 
 class ModifyCommandTests extends BaseCommandTests with BeforeAndAfter {
-  private var copyFiles = new ListBuffer[String]()
-  after {
-    copyFiles foreach deleteFile
-  }
-  
   private def readonlyStorageWords = makeStorage("test_modify_words.csv",
     "practice_sessions_read_only.csv").getWords
 
