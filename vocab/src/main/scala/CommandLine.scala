@@ -10,25 +10,117 @@ object CommandLine {
     val wordsArgName                  = "words"
     val modifyArgName                 = "modify"
     val deleteArgName                 = "delete"
-    val listArgName                   = "list"
     val practiceArgName               = "practice"
     val practiceAllArgName            = "all"
     val practiceHalfArgName           = "half"
     val helpArgName                   = "help"
     val versionArgName                = "version"
-    val nounArg                       = "--noun"
-    val verbArg                       = "--verb"
-    val pronounArg                    = "--pronoun"
-    val adjectiveArg                  = "--adjective"
-    val adverbArg                     = "--adverb"
-    val prepositionArg                = "--preposition"
-    val conjunctionArg                = "--conjunction"
-    val interjectionArg               = "--interjection"
+    val typeArg                       = "--type"
+    val nounArg                       = "noun"
+    val verbArg                       = "verb"
+    val pronounArg                    = "pronoun"
+    val adjectiveArg                  = "adjective"
+    val adverbArg                     = "adverb"
+    val prepositionArg                = "preposition"
+    val conjunctionArg                = "conjunction"
+    val interjectionArg               = "interjection"
   }
 
   val placeholder                   = "-1"
 
   import Args._
+
+  private def isValidSpeechPart(speechPart: String) = speechPart == nounArg |
+    speechPart == verbArg |
+    speechPart == pronounArg |
+    speechPart == adjectiveArg |
+    speechPart == prepositionArg |
+    speechPart == conjunctionArg |
+    speechPart == interjectionArg
+
+  private def isLowercaseAlphabetical(w: String) = w forall (('a' to 'z') contains _)
+
+  /** Parses the arguments passed to the program and returns a command (if the
+   *  arguments were valid) or a parsing error giving the reason for the parse
+   *  failure.
+   *
+   *  Assumes the program name arg has already been removed.
+   *  Ignores any input that comes after a valid command.
+   */
+  def parseArgsV2(args: Seq[String]): Either[ParseError, Command] = {
+    // TODO - remove ParseErrorUnknown and replace with specific (but as of yet
+    // non-existent specific parse errors)
+    args.toList match {
+      // Parse Add
+      case `addArgName` :: word :: definition :: typeArgName :: typeName :: _ =>
+        if (isLowercaseAlphabetical(word) && typeArgName == typeArg && isValidSpeechPart(typeName)) {
+          Right(Add(word, definition, Some(partOfSpeechFromString(typeName))))
+        } else {
+          Left(ParseErrorUnknown())
+        }
+      case `addArgName` :: word :: definition :: _ =>
+        if (isLowercaseAlphabetical(word)) {
+          Right(Add(word, definition, None))
+        } else {
+          Left(ParseErrorUnknown())
+        }
+
+      // Parse Modify
+      case `modifyArgName` :: word :: newDefinition :: typeArgName :: typeName :: _ =>
+        if (isLowercaseAlphabetical(word) && typeArgName == typeArg && isValidSpeechPart(typeName)) {
+          Right(Modify(word, newDefinition, Some(partOfSpeechFromString(typeName))))
+        } else {
+          Left(ParseErrorUnknown())
+        }
+      case `modifyArgName` :: word :: newDefinition :: _ =>
+        if (isLowercaseAlphabetical(word)) {
+          Right(Modify(word, newDefinition, None))
+        } else {
+          Left(ParseErrorUnknown())
+        }
+
+      // Parse Delete
+      case `deleteArgName` :: word :: typeArgName :: typeName :: _ =>
+        if (isLowercaseAlphabetical(word) && typeArgName == typeArg && isValidSpeechPart(typeName)) {
+          Right(Delete(word, Some(partOfSpeechFromString(typeName))))
+        } else {
+          Left(ParseErrorUnknown())
+        }
+      case `deleteArgName` :: word :: _ =>
+        if (isLowercaseAlphabetical(word)) {
+          Right(Delete(word, None))
+        } else {
+          Left(ParseErrorUnknown())
+        }
+
+      // Parse Practice
+      case `practiceArgName` :: practiceSessionType :: _ =>
+        if (practiceSessionType == practiceAllArgName) {
+          Right(Practice(Some(All)))
+        } else if (practiceSessionType == practiceHalfArgName) {
+          Right(Practice(Some(Half)))
+        } else if (practiceSessionType.toIntOption.isDefined && practiceSessionType.toInt > 0) {
+          Right(Practice(Some(ExplicitNumeric(practiceSessionType.toInt))))
+        } else if (practiceSessionType.toFloatOption.isDefined && practiceSessionType.toFloat > 0.0 && practiceSessionType.toFloat <= 1.0) {
+          Right(Practice(Some(PercentageNumeric(practiceSessionType.toFloat))))
+        } else {
+          Left(ParseErrorUnknown())
+        }
+      case `practiceArgName` :: _ => Right(Practice(None))
+
+      // Parse Words
+      case `wordsArgName` :: _ => Right(Words)
+
+      // Parse Help
+      case `helpArgName` :: _ => Right(Help)
+
+      // Parse Version
+      case `versionArgName` :: _ => Right(Version)
+
+      // Generic Parse Error
+      case _ => Left(ParseErrorUnknown())
+    }
+  }
 
   def parseArgs(args: String): Either[ParseError, Command] = {
     // split by whitespace, remove extra whitespace, and drop the first
