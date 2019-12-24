@@ -66,16 +66,17 @@ displays the man page.
 `vocab add <word> <definition> [--type type]`
 adds `word` to your practice set with the provided `definition`.
 type = noun | verb | pronoun | adjective | adverb | preposition | conjuction | interjection
+the definition **MUST** be enclosed in double quotes
 
 If you would like to add homonyms, the type must be specified. For example, "play" could refer
 to the verb "to play" but it could also refer to a play you see in a theatre. To
 add them both you may do the following:
 
-`vocab add play to take part in a game --type verb`
-`vocab add play a dramatic work for the stage --type noun`
+`vocab add play "to take part in a game" --type verb`
+`vocab add play "a dramatic work for the stage" --type noun`
 
 If you already added "play" without a type, i.e.
-`vocab add play to take part in a game`
+`vocab add play "to take part in a game"`
 but would like to add another word for "play" you must first use the `modify`
 command to add a type to the existing "play".
 
@@ -85,7 +86,8 @@ List all the words in your repertoire.
 
 ## Modify a word
 `vocab modify <word> <newDefinition> [--type type]`
-Replace the definition for an existing word
+Replace the definition for an existing word.
+newDefinition **must** be enclosed in double quotes.
 
 ## Show version
 `vocab version`
