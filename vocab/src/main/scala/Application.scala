@@ -18,7 +18,7 @@ case class Application[S <: Application.State](command: Option[Command] = None, 
   import commandlineparser._
 
   def parseArgs(args: Seq[String])(implicit ev: S =:= ParseArgs, storage: Storage): Application[RunCommand] =
-    CommandLine.parseArgs(args mkString " ") match {
+    CommandLine.parseArgs(args) match {
       case Left(e) => Application(None, Some(e))
       case Right(c) => Application(Some(c))
     }

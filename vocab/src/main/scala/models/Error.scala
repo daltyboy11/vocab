@@ -6,27 +6,19 @@ sealed trait ParseError {
 case class ParseErrorUnknown() extends ParseError {
   val message = "an unknown error ocurred during parsing"
 }
-case class ParseErrorNoArgs() extends ParseError {
-  val message = "no arguments were supplied"
+case class ParseErrorInvalidWord(word: String) extends ParseError {
+  val message = s"$word is not a valid word"
 }
-case class ParseErrorUnsupportedCommand(command: String) extends ParseError {
-  val message = s"$command is not a supported command"
+case class ParseErrorInvalidAddCommand() extends ParseError {
+  val message = "error - usage: vocab add <word> <definition> [--type type]"
 }
-case class ParseErrorUnexpectedNonAlphabeticalToken(token: String) extends ParseError {
-  val message = s"received $token but expected an alphabetical string"
+case class ParseErrorInvalidModifyCommand() extends ParseError {
+  val message = ""
 }
-case class ParseErrorMissingDefinition(word: String) extends ParseError {
-  val message = s"missing definition for supplied word: $word"
+case class ParseErrorInvalidDeleteCommand() extends ParseError {
+  val message = ""
 }
-case class ParseErrorInvalidPartOfSpeech(invalid: Invalid) extends ParseError {
-  val message = s"${invalid.given} is not a valid part of speech"
+case class ParseErrorInvalidPracticeCommand() extends ParseError {
+  val message = ""
 }
-case class ParseErrorInvalidPercentageNumeric(float: Float) extends ParseError {
-  val message = s"${float} is not a decimal in the range (0, 1]"
-}
-case class ParseErrorInvalidExplicitNumeric(int: Int) extends ParseError {
-  val message = s"${int} must be greater than 0"
-}
-case class ParseErrorInvalidPracticeArg(arg: String) extends ParseError {
-  val message = s"${arg} is not a valid argument for starting a practice session"
-}
+
