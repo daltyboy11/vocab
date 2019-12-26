@@ -5,57 +5,57 @@ import models._
 
 class ParsePracticeTests extends AnyFunSuite {
   test("Parse practice invalid argument") {
-    val args = "vocab practice I think therefore I am"
-    assertResult(Left(ParseErrorInvalidPracticeArg("I"))) {
+    val args = List("practice", "I", "think", "therefore", "I", "am")
+    assertResult(Left(ParseErrorInvalidPracticeCommand())) {
       CommandLine.parseArgs(args)
     }
   }
 
   test("Parse practice no args supplied") {
-    val args = "vocab practice"
+    val args = List("practice")
     assertResult(Right(Practice(None))) {
       CommandLine.parseArgs(args)
     }
   }
 
   test("Parse `practice all`") {
-    val args = "vocab practice all"
+    val args = List("practice", "all")
     assertResult(Right(Practice(Some(All)))) {
       CommandLine.parseArgs(args)
     }
   }
 
   test("Parse `practice half`") {
-    val args = "vocab practice half"
+    val args = List("practice", "half")
     assertResult(Right(Practice(Some(Half)))) {
       CommandLine.parseArgs(args)
     }
   }
 
   test("Parse practice numeric valid") {
-    val args = "vocab practice 120"
+    val args = List("practice", "120")
     assertResult(Right(Practice(Some(ExplicitNumeric(120))))) {
       CommandLine.parseArgs(args)
     }
   }
 
   test("Parse practice numeric invalid") {
-    val args = "vocab practice -120"
-    assertResult(Left(ParseErrorInvalidExplicitNumeric(-120))) {
+    val args = List("practice", "-120")
+    assertResult(Left(ParseErrorInvalidPracticeCommand())) {
       CommandLine.parseArgs(args)
     }
   }
 
   test("Parse practice percentage valid") {
-    val args = "vocab practice 0.4"
+    val args = List("practice", "0.4")
     assertResult(Right(Practice(Some(PercentageNumeric(0.4f))))) {
       CommandLine.parseArgs(args)
     }
   }
 
   test("Parse practice percentage invalid") {
-    val args = "vocab practice 69.69"
-    assertResult(Left(ParseErrorInvalidPercentageNumeric(69.69f))) {
+    val args = List("practice", "69.69")
+    assertResult(Left(ParseErrorInvalidPracticeCommand())) {
       CommandLine.parseArgs(args)
     }
   }

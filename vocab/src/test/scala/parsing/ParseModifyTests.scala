@@ -4,45 +4,44 @@ import models._
 
 class ParseModifyTests extends AnyFunSuite {
   test("Modify no part of speech") {
-    val args = "vocab modify cat the best friend of man"
-    assertResult(Right(Modify("cat", "the best friend of man", None))) {
+    val args = List("modify", "dog", "man's best friend")
+    assertResult(Right(Modify("dog", "man's best friend", None))) {
       CommandLine.parseArgs(args)
     }
   }
 
   test("Modify missing definition") {
-    val args = "vocab modify trump"
-    assertResult(Left(ParseErrorMissingDefinition("trump"))) {
+    val args = List("modify","trump")
+    assertResult(Left(ParseErrorInvalidModifyCommand())) {
+      CommandLine.parseArgs(args)
+    }
+  }
+
+  test("Modify missing type") {
+    val args = List("modify", "cat", "man's best friend", "--type")
+    assertResult(Left(ParseErrorInvalidModifyCommand())) {
+      CommandLine.parseArgs(args)
+    }
+  }
+  
+  test("Modify invalid word") {
+    val args = List("modify", "h0ax", "something fake")
+    assertResult(Left(ParseErrorInvalidWord("h0ax"))) {
       CommandLine.parseArgs(args)
     }
   }
 
   test ("Modify with part of speech valid") {
-    val args = "vocab modify wow used to express strong feeling --interjection some excess words"
+    val args = List("modify", "wow", "used to express strong feeling", "--type", "interjection")
     assertResult(Right(Modify("wow", "used to express strong feeling", Some(Interjection)))) {
       CommandLine.parseArgs(args)
     }
   }
 
   test("Modify with part of speech invalid") {
-    val args = "vocab modify wow used to express strong feeling --exclamation"
-    assertResult(Left(ParseErrorInvalidPartOfSpeech(Invalid("exclamation")))) {
+    val args = List("modify", "wow", "used to express strong feeling", "--type", "exclamation")
+    assertResult(Left(ParseErrorInvalidModifyCommand())) {
       CommandLine.parseArgs(args)
     }
   }
-
-  test("Modify with description invalid 1") {
-    val args = "vocab modify hat $ometh1ng $0m30n3 w3ar$ 0n th31r h3ad --noun"
-    assertResult(Left(ParseErrorUnexpectedNonAlphabeticalToken("$ometh1ng"))) {
-      CommandLine.parseArgs(args)
-    }
-  }
-
-  test("Modify with description invalid 2") {
-    val args = "vocab modify hat something someone wears on their h4ad"
-    assertResult(Left(ParseErrorUnexpectedNonAlphabeticalToken("h4ad"))) {
-      CommandLine.parseArgs(args)
-    }
-  }
-
 }

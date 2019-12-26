@@ -3,22 +3,22 @@ package models
 sealed trait ParseError {
   def message: String
 }
-case class ParseErrorUnknown() extends ParseError {
-  val message = "an unknown error ocurred during parsing"
+case class ParseErrorUnsupportedCommand() extends ParseError {
+  val message = "Unsupported command. See vocab help for proper usage"
 }
 case class ParseErrorInvalidWord(word: String) extends ParseError {
   val message = s"$word is not a valid word"
 }
 case class ParseErrorInvalidAddCommand() extends ParseError {
-  val message = "error - usage: vocab add <word> <definition> [--type type]"
+  val message = "Invalid usage of vocab add. See vocab help for proper usage"
 }
 case class ParseErrorInvalidModifyCommand() extends ParseError {
-  val message = ""
+  val message = "Invalid usage of vocab modify. See vocab help for proper usage"
 }
 case class ParseErrorInvalidDeleteCommand() extends ParseError {
-  val message = ""
+  val message = "Invalid usage of vocab delete. See vocab help for proper usage"
 }
 case class ParseErrorInvalidPracticeCommand() extends ParseError {
-  val message = ""
+  val message = "Invalid usage of vocab practice. See vocab help for proper usage"
 }
 

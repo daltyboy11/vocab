@@ -34,8 +34,6 @@ object CommandLine {
    *  Ignores any input that comes after a valid command.
    */
   def parseArgs(args: Seq[String]): Either[ParseError, Command] = {
-    // TODO - remove ParseErrorUnknown and replace with specific (but as of yet
-    // non-existent specific parse errors)
     args.toList match {
       // Parse Add
       case `addArgName` :: word :: definition :: typeArgName :: typeName :: _ =>
@@ -44,12 +42,15 @@ object CommandLine {
         } else {
           Left(ParseErrorInvalidAddCommand())
         }
+      case `addArgName` :: word :: definition :: typeArgName :: _ => Left(ParseErrorInvalidAddCommand()) // missing type
       case `addArgName` :: word :: definition :: _ =>
         if (isLowercaseAlphabetical(word)) {
           Right(Add(word, definition, None))
         } else {
           Left(ParseErrorInvalidWord(word))
         }
+      case `addArgName` :: word :: Nil => Left(ParseErrorInvalidAddCommand()) // missing definition
+      case `addArgName` :: Nil => Left(ParseErrorInvalidAddCommand()) // missing word
 
       // Parse Modify
       case `modifyArgName` :: word :: newDefinition :: typeArgName :: typeName :: _ =>
@@ -58,12 +59,15 @@ object CommandLine {
         } else {
           Left(ParseErrorInvalidModifyCommand())
         }
+      case `modifyArgName` :: word :: newDefinition :: typeArgName :: _ => Left(ParseErrorInvalidModifyCommand()) // missing type
       case `modifyArgName` :: word :: newDefinition :: _ =>
         if (isLowercaseAlphabetical(word)) {
           Right(Modify(word, newDefinition, None))
         } else {
           Left(ParseErrorInvalidWord(word))
         }
+      case `modifyArgName` :: word :: Nil => Left(ParseErrorInvalidModifyCommand()) // missing definition
+      case `modifyArgName` :: Nil => Left(ParseErrorInvalidModifyCommand()) // missing word
 
       // Parse Delete
       case `deleteArgName` :: word :: typeArgName :: typeName :: _ =>
@@ -72,6 +76,7 @@ object CommandLine {
         } else {
           Left(ParseErrorInvalidDeleteCommand())
         }
+      case `deleteArgName` :: word :: typeArgName :: _ => Left(ParseErrorInvalidDeleteCommand()) // missing type
       case `deleteArgName` :: word :: _ =>
         if (isLowercaseAlphabetical(word)) {
           Right(Delete(word, None))
@@ -104,7 +109,7 @@ object CommandLine {
       case `versionArgName` :: _ => Right(Version)
 
       // Generic Parse Error
-      case _ => Left(ParseErrorUnknown())
+      case _ => Left(ParseErrorUnsupportedCommand())
     }
   }
 

@@ -10,9 +10,16 @@ class ParseAddTests extends AnyFunSuite {
     }
   }
 
-  test("Add missing definition 1") {
+  test("Add missing definition") {
     val args = List("add", "ardor")
-    assertResult(Left(ParseErrorMissingDefinition("ardor"))) {
+    assertResult(Left(ParseErrorInvalidAddCommand())) {
+      CommandLine.parseArgs(args)
+    }
+  }
+
+  test("Add missing part of speech") {
+    val args = List("add", "ardor", "enthusiasm or passion", "--type")
+    assertResult(Left(ParseErrorInvalidAddCommand())) {
       CommandLine.parseArgs(args)
     }
   }
@@ -26,14 +33,14 @@ class ParseAddTests extends AnyFunSuite {
 
   test("Add with part of speech invalid") {
     val args = List("add", "ardor", "enthusiasm or passion", "--type", "notAValidType")
-    assertResult(Left(ParseErrorInvalidPartOfSpeech(Invalid("notAValidType")))) {
+    assertResult(Left(ParseErrorInvalidAddCommand())) {
       CommandLine.parseArgs(args)
     }
   }
 
   test("Add with invalid word") {
     val args = List("add", "ard0r", "enthusiasm or passion")
-    assertResult(Left(ParseErrorUnexpectedNonAlphabeticalToken("enthu$ia$m"))) {
+    assertResult(Left(ParseErrorInvalidWord("ard0r"))) {
       CommandLine.parseArgs(args)
     }
   }
