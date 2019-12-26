@@ -382,8 +382,9 @@ case object Help extends Command {
   |       vocab is open source and available on github
   |       https://github.com/daltyboy11/vocab
   |""".stripMargin
-  def run(implicit storage: Storage): Unit = {
 
+  def run(implicit storage: Storage): Unit = {
+    println(helpMessage)
   }
 }
 
