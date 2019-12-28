@@ -1,10 +1,12 @@
 package models
 
 import scala.annotation.tailrec
+import scala.collection.mutable.ArrayBuffer
+import scala.math.min
 import scala.util.Random
 import storage._
 
-sealed trait Command {
+trait Command {
   def run(implicit storage: Storage): Unit
 }
 
@@ -144,47 +146,6 @@ case class Delete(word: String, partOfSpeech: Option[SpeechPart]) extends Comman
   }
 }
 
-case class Practice(sessionType: Option[PracticeSessionType]) extends Command {
-  private def wordsForSession(sessionType: PracticeSessionType, allWords: Seq[Word]): Seq[Word] = {
-    val totalNumWords = allWords.length
-    val numWordsForThisSession = sessionType match {
-      case All => totalNumWords
-      case Half => totalNumWords / 2
-      case ExplicitNumeric(numWords) => numWords
-      case PercentageNumeric(percentage) => (totalNumWords.toFloat * percentage).toInt
-    }
-
-    val wordsSortedByNumTimesPracticed = allWords sortBy (_.numTimesPracticed)
-    val wordsNeverPracticed = Random.shuffle(wordsSortedByNumTimesPracticed takeWhile (_.numTimesPracticed == 0))
-    val wordsAlreadyPracticed = wordsSortedByNumTimesPracticed dropWhile (_.numTimesPracticed == 0)
-
-    def weightedSelect(wordPool: Seq[Word], wordAcc: Seq[Word], targetSize: Int): Seq[Word] = {
-      if (wordAcc.length == targetSize) {
-        wordAcc
-      } else {
-        val inversePracticeCounts = wordPool map (1.0 / _.numTimesPracticed)
-        val sumInversePracticeCounts = inversePracticeCounts reduce (_ + _)
-        val weights = inversePracticeCounts map (_ / sumInversePracticeCounts)
-        val cumulativeWeights = weights.scanLeft(0.0)(_ + _)
-        val randomDouble = Random.nextDouble()
-        // Get the index of the first element whose value is greater than or
-        // equal to randomDouble
-        /*
-        cumulativeWeights.zipWithIndex.dropWhile {
-          case (weight, index) => weight < randomDouble
-        }.head._2
-        */
-       ???
-      }
-    }
-
-    ???
-  }
-
-  def run(implicit storage: Storage): Unit = {
-    // TODO
-  }
-}
 
 case object Words extends Command {
 
