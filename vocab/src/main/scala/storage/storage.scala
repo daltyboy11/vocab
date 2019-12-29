@@ -24,11 +24,7 @@ case class Storage(pathToStorage: String, wordStorage: String = "words.csv", pra
     words = words :+ word
   }
 
-  def addPracticeSession(session: PracticeSession): Boolean = {
-    val willAdd = practiceSessions.contains(session)
-    practiceSessions = practiceSessions :+ session
-    willAdd
-  }
+  def addPracticeSession(session: PracticeSession): Unit = practiceSessions = practiceSessions :+ session
 
   /** Modifies an existing word. Assumes the word exists and will cause a
    *  runtime error if it doesn't

@@ -117,6 +117,8 @@ final case class Practice(sessionType: Option[PracticeSessionType]) extends Comm
     wordsNeverPracticed.toSet ++ wordsPracticed
   }
 
+  @inline private def defaultPracticeSessionType = Half
+
   def run(implicit storage: Storage): Unit = {
     val practiceSessionWords = wordsForSession(sessionType.getOrElse(Half), storage.getWords)
     val practiceSession = new PracticeSession(practiceSessionWords)
@@ -143,8 +145,16 @@ final case class Practice(sessionType: Option[PracticeSessionType]) extends Comm
     // is not finished is when the user quits
     if (practiceSession.isFinished) {
       storage.incrementPracticeCounts(practiceSessionWords)
-      storage.commit
     }
+
+    // Save the practice session
+    storage.addPracticeSession(PracticeSession(sessionType.getOrElse(defaultPracticeSessionType),
+      practiceSessionWords.size,
+      ???,
+      ???,
+      practiceSession.isFinished))
+
+    storage.commit
   }
 }
 
