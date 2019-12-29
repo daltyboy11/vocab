@@ -4,7 +4,6 @@ import models._
 import storage._
 
 class StorageTests extends AnyFunSuite {
-
   val projectDir = System.getProperty("user.dir")
 
   val csv1Words = Seq(
@@ -65,11 +64,33 @@ class StorageTests extends AnyFunSuite {
     }
   }
 
-  test("test commit") {
+  test("commit") {
     // create temporary files words2.csv and practice_sessions2.csv because
     // committing overwrites the storage files and I need those for the other
     // tests...
     // TODO
   }
 
+  test("increment word counts") {
+    val storage = Storage(s"${projectDir}/src/test/scala/storage",
+      "words1.csv",
+      "practice_sessions1.csv")
+
+    val wordsToIncrement = Set(
+      Word("ardor", "enthusiasm or passion", Some(Noun), 0),
+      Word("peregrination", "a long and meandering journey", None, 3),
+      Word("nadir", "the low point of the suffering of someone", None, 0))
+    val expected = csv1Words map {
+      case word => word.word match {
+        case "ardor" | "peregrination" | "nadir" =>
+          Word(word.word, word.definition, word.partOfSpeech, word.numTimesPracticed + 1)
+        case _ => word
+      }
+    }
+
+    assertResult(expected) {
+      storage.incrementPracticeCounts(wordsToIncrement)
+      storage.getWords
+    }
+  }
 }

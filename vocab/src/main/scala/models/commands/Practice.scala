@@ -2,11 +2,34 @@ package models
 
 import scala.annotation.tailrec
 import scala.collection.mutable.ArrayBuffer
+import scala.io.StdIn
 import scala.math.min
+import scala.util.control.Breaks._
 import scala.util.Random
 import storage._
 
+object Practice {
+  val recalledShortArg = "r"
+  val recalledLongArg = "recalled"
+  val forgotShortArg = "f"
+  val forgotLongArg = "forgot"
+  val showShortArg = "s"
+  val showLongArg = "show"
+  val quitShortArg = "q"
+  val quitLongArg = "quit"
+
+  sealed trait Result
+  object Result {
+    final case object Finished extends Result
+    final case class Forgot(word: Word) extends Result
+    final case class Recalled(word: Word) extends Result
+    final case class ShowDefinition(word: Word) extends Result
+  }
+}
+
 final case class Practice(sessionType: Option[PracticeSessionType]) extends Command {
+  import Practice._
+
   class PracticeSession(words: Set[Word]) {
     private var _words = ArrayBuffer[Word](words.toSeq : _*)
 
@@ -95,7 +118,33 @@ final case class Practice(sessionType: Option[PracticeSessionType]) extends Comm
   }
 
   def run(implicit storage: Storage): Unit = {
-    // TODO
+    val practiceSessionWords = wordsForSession(sessionType.getOrElse(Half), storage.getWords)
+    val practiceSession = new PracticeSession(practiceSessionWords)
+    breakable { while (!practiceSession.isFinished) {
+      // Show current word
+      val currentWord = practiceSession.currentWord
+      if (currentWord.partOfSpeech.isDefined) {
+        println(s"${currentWord.word} (${currentWord.partOfSpeech.get})")
+      } else {
+        println(s"${currentWord.word}")
+      }
+
+      // Wait for input
+      StdIn.readLine() match {
+        case `recalledShortArg` | `recalledLongArg` => practiceSession.practice(true)
+        case `forgotShortArg` | `forgotLongArg` => practiceSession.practice(false)
+        case `showShortArg` | `showLongArg` => println(s"definition: ${currentWord.definition}")
+        case `quitShortArg` | `quitLongArg` => break
+        case _ => println("invalid input")
+      }
+    } }
+
+    // Save if practice session is finished. The case when the practice session
+    // is not finished is when the user quits
+    if (practiceSession.isFinished) {
+      storage.incrementPracticeCounts(practiceSessionWords)
+      storage.commit
+    }
   }
 }
 

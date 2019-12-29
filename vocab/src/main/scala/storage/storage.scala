@@ -41,6 +41,18 @@ case class Storage(pathToStorage: String, wordStorage: String = "words.csv", pra
     words = words.updated(index, newWord)
   }
 
+  /** Increments the practice counts for the given set of words
+   */
+  def incrementPracticeCounts(wordsToIncrement: Set[Word]): Unit = {
+    words = words map {
+      case word => if (wordsToIncrement contains word) {
+        Word(word.word, word.definition, word.partOfSpeech, word.numTimesPracticed + 1)
+      } else {
+        word
+      }
+    }
+  }
+
   /** Deletes all words matching `word`
    */
   def deleteWords(word: String): Unit = {
