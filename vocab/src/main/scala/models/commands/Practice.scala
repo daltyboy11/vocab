@@ -4,8 +4,8 @@ import scala.annotation.tailrec
 import scala.collection.mutable.ArrayBuffer
 import scala.io.StdIn
 import scala.math.min
-import scala.util.control.Breaks._
 import scala.util.Random
+
 import storage._
 
 object Practice {
@@ -17,55 +17,91 @@ object Practice {
   val showLongArg = "show"
   val quitShortArg = "q"
   val quitLongArg = "quit"
-
-  sealed trait Result
-  object Result {
-    final case object Finished extends Result
-    final case class Forgot(word: Word) extends Result
-    final case class Recalled(word: Word) extends Result
-    final case class ShowDefinition(word: Word) extends Result
-  }
 }
 
 final case class Practice(sessionType: Option[PracticeSessionType]) extends Command {
   import Practice._
 
-  class PracticeSession(words: Set[Word]) {
-    private var _words = ArrayBuffer[Word](words.toSeq : _*)
+  object PracticeSessionRun {
+    val shuffleThreshold = 5
+    val successfulPracticeThreshold = 3
+  }
 
-    // A word must be successfully recalled 3 times before it is considered
-    // "remembered".
-    private val _successThreshold = 3
-    private var _successCounts = scala.collection.mutable.Map(words.toSeq map(word => (word, 0)) : _*)
+  final case class PracticeSessionRun(words: Seq[Word],
+    completions: Map[Word, Int],
+    private val shuffleCount: Int) {
+    import PracticeSessionRun._
 
-    // The implementation places forgotten words at the back of the list
-    // Every time our shuffle counter hits the shuffle threshold we shuffle the
-    // remaining words so the sequence is not predictable.
-    private val _shuffleThreshold = _words.length / 5 
-    private var _shuffleCounter = 0
+    private val _words = if (shuffleCount % (words.length / shuffleThreshold) == 0) {
+      Random.shuffle(words)
+    } else {
+      words
+    }
 
-    def isFinished: Boolean = _words.isEmpty
-    def currentWord: Word = _words.head
-    def wordsLeft: Set[Word] = _words.toSet
+    def isFinished = _words.isEmpty
+    def currentWord = _words.head
 
-    def practice(recalled: Boolean): Unit = {
-      val oldCurrentWord = currentWord
-      _words = _words.tail
-      
-      if (recalled) {
-        _successCounts(oldCurrentWord) += 1
+    def practiceWord(recalled: Boolean): PracticeSessionRun = if (recalled) {
+      val successfulPractices = completions(currentWord) + 1
+      if (successfulPractices >= successfulPracticeThreshold) {
+        PracticeSessionRun(_words.tail,
+          completions + (currentWord -> successfulPractices),
+          shuffleCount + 1)
+      } else {
+        PracticeSessionRun(_words.tail :+ currentWord,
+          completions + (currentWord -> successfulPractices),
+          shuffleCount + 1)
+      }
+    } else {
+      PracticeSessionRun(_words.tail :+ currentWord, completions, shuffleCount + 1)
+    }
+  }
+
+  def run(implicit storage: Storage): Unit = {
+    val startTime = System.currentTimeMillis / 1000
+    val practiceSessionWords = wordsForSession(sessionType.getOrElse(Half), storage.getWords)
+    var practiceSession = PracticeSessionRun(practiceSessionWords.toSeq,
+      practiceSessionWords.foldLeft(Map[Word, Int]())((map, word) => map + (word -> 0)),
+      0)
+    var didQuit = false
+
+    while (!(practiceSession.isFinished || didQuit)) {
+      // Display word
+      val currentWord = practiceSession.currentWord
+      if (currentWord.partOfSpeech.isDefined) {
+        println(s"${currentWord.word} (${currentWord.partOfSpeech.get})")
+      } else {
+        println(s"${currentWord.word}")
       }
 
-      if (_successCounts(oldCurrentWord) < _successThreshold) {
-        _words += oldCurrentWord
-      }
-
-      _shuffleCounter += 1
-      if (_shuffleCounter == _shuffleThreshold) {
-        _words = Random.shuffle(_words)
-        _shuffleCounter = 0
+      // Wait for input
+      StdIn.readLine() match {
+        case `recalledShortArg` | `recalledLongArg` =>
+          practiceSession = practiceSession.practiceWord(true)
+        case `forgotShortArg` | `forgotLongArg` =>
+          practiceSession = practiceSession.practiceWord(false)
+        case `showShortArg` | `showLongArg` => println(s"definition: ${currentWord.definition}")
+        case `quitShortArg` | `quitLongArg` => didQuit = true
+        case _ => println("invalid input")
       }
     }
+
+    // Save if practice session is finished. The case when the practice session
+    // is not finished is when the user quits
+    if (practiceSession.isFinished) {
+      storage.incrementPracticeCounts(practiceSessionWords)
+    }
+
+    // Save the practice session
+    val session = PracticeSession(
+      sessionType = sessionType.getOrElse(defaultPracticeSessionType),
+      numWords = practiceSessionWords.size,
+      duration = (System.currentTimeMillis / 1000 - startTime).toInt,
+      timestamp = startTime.toInt,
+      didFinish = practiceSession.isFinished)
+    storage.addPracticeSession(session)
+
+    storage.commit
   }
 
   /* Non-deterministically selects the words for a practice session from the set
@@ -118,43 +154,5 @@ final case class Practice(sessionType: Option[PracticeSessionType]) extends Comm
   }
 
   @inline private def defaultPracticeSessionType = Half
-
-  def run(implicit storage: Storage): Unit = {
-    val practiceSessionWords = wordsForSession(sessionType.getOrElse(Half), storage.getWords)
-    val practiceSession = new PracticeSession(practiceSessionWords)
-    breakable { while (!practiceSession.isFinished) {
-      // Show current word
-      val currentWord = practiceSession.currentWord
-      if (currentWord.partOfSpeech.isDefined) {
-        println(s"${currentWord.word} (${currentWord.partOfSpeech.get})")
-      } else {
-        println(s"${currentWord.word}")
-      }
-
-      // Wait for input
-      StdIn.readLine() match {
-        case `recalledShortArg` | `recalledLongArg` => practiceSession.practice(true)
-        case `forgotShortArg` | `forgotLongArg` => practiceSession.practice(false)
-        case `showShortArg` | `showLongArg` => println(s"definition: ${currentWord.definition}")
-        case `quitShortArg` | `quitLongArg` => break
-        case _ => println("invalid input")
-      }
-    } }
-
-    // Save if practice session is finished. The case when the practice session
-    // is not finished is when the user quits
-    if (practiceSession.isFinished) {
-      storage.incrementPracticeCounts(practiceSessionWords)
-    }
-
-    // Save the practice session
-    storage.addPracticeSession(PracticeSession(sessionType.getOrElse(defaultPracticeSessionType),
-      practiceSessionWords.size,
-      ???,
-      ???,
-      practiceSession.isFinished))
-
-    storage.commit
-  }
 }
 
