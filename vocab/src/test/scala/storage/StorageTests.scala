@@ -65,10 +65,69 @@ class StorageTests extends AnyFunSuite {
   }
 
   test("commit") {
-    // create temporary files words2.csv and practice_sessions2.csv because
-    // committing overwrites the storage files and I need those for the other
-    // tests...
-    // TODO
+    // Set up - create temp files
+    import java.io.{File, FileInputStream, FileOutputStream}
+    val srcWordsFile = new File( s"${projectDir}/src/test/scala/storage/words1.csv" )
+    val srcPracticeSessionsFile = new File( s"${projectDir}/src/test/scala/storage/practice_sessions1.csv" )
+    val destWordsFile = new File( s"${projectDir}/src/test/scala/storage/words2.csv" )
+    val destPracticeSessionsFile = new File( s"${projectDir}/src/test/scala/storage/practice_sessions2.csv" )
+    (new FileOutputStream( destWordsFile ))
+      .getChannel
+      .transferFrom( new FileInputStream( srcWordsFile ).getChannel, 0, Long.MaxValue )
+    (new FileOutputStream( destPracticeSessionsFile ))
+      .getChannel
+      .transferFrom( new FileInputStream( srcPracticeSessionsFile ).getChannel, 0, Long.MaxValue )
+
+    // Test that committing will overwrite the contents of the storage files
+    val storage = Storage( s"${projectDir}/src/test/scala/storage",
+      "words2.csv",
+      "practice_sessions2.csv"
+    )
+
+    val word1 = Word( "hoise", "to lift raise", Some( Verb ), 0 )
+    val word2 = Word( "ambidextrous", "using both hands with equal dexterity", Some( Adjective ), 5 )
+    val practiceSession1 = PracticeSession( All, 10, 100000, 123456789, true )
+    storage addWord word1
+    storage addWord word2
+    storage deleteWords "rapine"
+    storage addPracticeSession practiceSession1
+    storage.commit()
+
+    val expectedWords = Seq(
+      Word("ardor", "enthusiasm or passion", Some(Noun), 0),
+      Word("irascible", "easily angered", Some(Adjective), 1),
+      Word("rapacious", "aggresively greedy or grasping", Some(Adjective), 1),
+      Word("risible","such as to provoke laughter", Some(Adjective), 0),
+      Word("peregrination", "a long and meandering journey", None, 3),
+      Word("mellifluous", "sweet or musical sounding", Some(Adjective), 1),
+      Word("nadir", "the low point of the suffering of someone", None, 0),
+      word1,
+      word2)
+
+    val expectedPracticeSessions = Seq(
+      PracticeSession(All, 1, 1, 1, true),
+      PracticeSession(Half, 1, 1, 1, true),
+      PracticeSession(ExplicitNumeric(1), 1, 1, 1, true),
+      PracticeSession(PercentageNumeric(0.5f), 1, 1, 1, false),
+      practiceSession1)
+
+    // Create a new storage with the same source files. This will be a fresh reload of the files
+    val testStorage = Storage( s"${projectDir}/src/test/scala/storage",
+      "words2.csv",
+      "practice_sessions2.csv"
+    )
+
+    assertResult( expectedWords ) {
+      testStorage.getWords
+    }
+
+    assertResult( expectedPracticeSessions ) {
+      testStorage.getPracticeSessions
+    }
+
+    // Tear down - destroy temp files
+    destWordsFile.delete()
+    destPracticeSessionsFile.delete()
   }
 
   test("increment word counts") {
