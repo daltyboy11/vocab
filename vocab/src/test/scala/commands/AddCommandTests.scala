@@ -1,6 +1,5 @@
 import models._
 import org.scalatest.BeforeAndAfter
-import scala.collection.mutable.ListBuffer
 
 class AddCommandTests extends BaseCommandTests with BeforeAndAfter {
   private def readonlyStorageWords: Seq[Word] = makeStorage("words_read_only.csv", "practice_sessions_read_only.csv").getWords

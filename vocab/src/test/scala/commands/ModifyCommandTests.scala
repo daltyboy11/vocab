@@ -1,5 +1,4 @@
 import org.scalatest.BeforeAndAfter
-import scala.collection.mutable.ListBuffer
 import models._
 
 class ModifyCommandTests extends BaseCommandTests with BeforeAndAfter {
