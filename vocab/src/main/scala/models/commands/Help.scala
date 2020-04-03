@@ -45,6 +45,10 @@ case object Help extends Command {
   |         Shows all the words in your vocabulary set along with the number of
   |         times they have been practiced.
   |
+  |       - vocab clear
+  |         Clears all word and practice session data. You will be asked for
+  |         confirmation because this is a non-recoverable operation.
+  |
   |       - vocab version
   |         Show the program version number.
   |

@@ -30,4 +30,11 @@ class CommandLineParserTests extends AnyFunSuite {
       CommandLine.parseArgs(args)
     }
   }
+
+  test("vocab clear") {
+    val args = List("clear")
+    assertResult(Right(Clear)) {
+      CommandLine.parseArgs(args)
+    }
+  }
 }

@@ -22,6 +22,7 @@ object CommandLine {
     val prepositionArg                = "preposition"
     val conjunctionArg                = "conjunction"
     val interjectionArg               = "interjection"
+    val clearArg                      = "clear"
   }
 
   import Args._
@@ -107,6 +108,9 @@ object CommandLine {
 
       // Parse Version
       case `versionArgName` :: _ => Right(Version)
+
+      // Clear
+      case `clearArg` :: _ => Right(Clear)
 
       // Generic Parse Error
       case _ => Left(ParseErrorUnsupportedCommand())

@@ -56,6 +56,14 @@ case class Storage(pathToStorage: String, wordStorage: String = "words.csv", pra
     words = words filterNot wordsToDelete.contains
   }
 
+  /**
+   * Clears ALL data on words on practice sessions.
+   */
+  def clear(): Unit = {
+    words = Seq.empty[Word]
+    practiceSessions = Seq.empty[PracticeSession]
+  }
+
   /** Deletes the word matching `word` and the given part of speech
    */
   def deleteWord(word: String, partOfSpeech: SpeechPart): Unit = {
