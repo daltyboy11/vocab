@@ -9,88 +9,93 @@ import scala.util.Random
 import storage._
 
 object Practice {
-  val recalledShortArg = "r"
-  val recalledLongArg = "recalled"
-  val forgotShortArg = "f"
-  val forgotLongArg = "forgot"
-  val showShortArg = "s"
-  val showLongArg = "show"
-  val quitShortArg = "q"
-  val quitLongArg = "quit"
+  val recalledArg = "r"
+  val forgotArg = "f"
+  val quitArg = "q"
+  val usageMessage = """
+  commands:
+   - r: go to the next word after successfully recalling the word
+   - f: go to the next word after failing to recall the word
+   - q: quit 
+  """
+  val noWordsMessage = "You have no words to practice!"
 }
 
 final case class Practice(sessionType: Option[PracticeSessionType]) extends Command {
   import Practice._
 
   object PracticeSessionRun {
-    val shuffleThreshold = 5
-    val successfulPracticeThreshold = 3
+    val recallThreshold = 3 // terminate after you have successfully recalled each word this many times
   }
 
-  final case class PracticeSessionRun(words: Seq[Word],
-    completions: Map[Word, Int],
-    private val shuffleCount: Int) {
+  final case class PracticeSessionRun(words: Seq[Word], completions: Map[Word, Int]) {
     import PracticeSessionRun._
-
-    private val _words = if (shuffleCount % (words.length / shuffleThreshold) == 0) {
-      Random.shuffle(words)
-    } else {
-      words
-    }
+    
+    private val _words = Random.shuffle(words)
 
     def isFinished = _words.isEmpty
     def currentWord = _words.head
 
-    def practiceWord(recalled: Boolean): PracticeSessionRun = if (recalled) {
-      val successfulPractices = completions(currentWord) + 1
-      if (successfulPractices >= successfulPracticeThreshold) {
-        PracticeSessionRun(_words.tail,
-          completions + (currentWord -> successfulPractices),
-          shuffleCount + 1)
-      } else {
-        PracticeSessionRun(_words.tail :+ currentWord,
-          completions + (currentWord -> successfulPractices),
-          shuffleCount + 1)
+    def practice(recalled: Boolean): PracticeSessionRun = recalled match {
+      // TODO: randomally shuffling the word set every time is inefficient
+      // asymptotically. This is ok as long as it doesn't affect the user.
+      // Investigation is required.
+      case true => {
+        val numRecalls = completions(currentWord) + 1
+        val nextWords = numRecalls match {
+          case `recallThreshold` => _words.tail
+          case _ => _words
+        }
+        PracticeSessionRun(Random.shuffle(nextWords), completions + (currentWord -> numRecalls))
       }
-    } else {
-      PracticeSessionRun(_words.tail :+ currentWord, completions, shuffleCount + 1)
+      case false => PracticeSessionRun(Random.shuffle(_words), completions)
     }
   }
 
   def run(implicit storage: Storage): Unit = {
     val startTime = System.currentTimeMillis / 1000
-    val practiceSessionWords = wordsForSession(sessionType.getOrElse(Half), storage.getWords)
-    var practiceSession = PracticeSessionRun(practiceSessionWords.toSeq,
-      practiceSessionWords.foldLeft(Map[Word, Int]())((map, word) => map + (word -> 0)),
-      0)
+    val practiceSessionWords = wordsForSession(sessionType.getOrElse(All), storage.getWords)
+    if (practiceSessionWords.isEmpty) {
+      println(noWordsMessage)
+      return
+    }
+    var practiceSession = PracticeSessionRun(
+      practiceSessionWords.toSeq,
+      practiceSessionWords.foldLeft(Map[Word, Int]())((map, word) => map + (word -> 0))
+    )
     var didQuit = false
 
     while (!(practiceSession.isFinished || didQuit)) {
-      // Display word
       val currentWord = practiceSession.currentWord
-      if (currentWord.partOfSpeech.isDefined) {
-        println(s"${currentWord.word} (${currentWord.partOfSpeech.get})")
-      } else {
-        println(s"${currentWord.word}")
+      val wordMsg = currentWord.partOfSpeech match {
+        case Some(speechPart) => s"${currentWord.word} (${speechPart})"
+        case None => s"${currentWord.word}"
       }
+      println(wordMsg)
 
-      // Wait for input
-      StdIn.readLine() match {
-        case `recalledShortArg` | `recalledLongArg` =>
-          practiceSession = practiceSession.practiceWord(true)
-        case `forgotShortArg` | `forgotLongArg` =>
-          practiceSession = practiceSession.practiceWord(false)
-        case `showShortArg` | `showLongArg` => println(s"definition: ${currentWord.definition}")
-        case `quitShortArg` | `quitLongArg` => didQuit = true
-        case _ => println("invalid input")
+      StdIn.readChar().toString match {
+        case `recalledArg` => {
+          println(Console.GREEN + s"${currentWord.definition}" + Console.WHITE + "\r")
+          practiceSession = practiceSession.practice(true)
+        }
+        case `forgotArg` => {
+          println(Console.RED + s"${currentWord.definition}" + Console.WHITE + "\r")
+          practiceSession = practiceSession.practice(false)
+        }
+        case `quitArg` => didQuit = true
+        case _ => println(usageMessage)
       }
     }
 
-    // Save if practice session is finished. The case when the practice session
-    // is not finished is when the user quits
+    // If the user finished then increment the practice counts of
+    // the words in this practice session
     if (practiceSession.isFinished) {
       storage.incrementPracticeCounts(practiceSessionWords)
     }
+
+    // Show completion message
+    val completionMsg = s"practice session complete (${practiceSession.completions.size}/${practiceSessionWords.size})"
+    println(completionMsg)
 
     // Save the practice session
     val session = PracticeSession(
@@ -110,6 +115,12 @@ final case class Practice(sessionType: Option[PracticeSessionType]) extends Comm
    * The number of words selected depends on sessionType.
    */
   private def wordsForSession(sessionType: PracticeSessionType, allWords: Seq[Word]): Set[Word] = {
+    /*
+     * Selects words from the word pool based on a weighted random selection
+     * until we hit the target size. Words that have been practiced less are
+     * weighter higher. Assumes that each word in the word pool has been
+     * practiced at least once.
+     */
     @tailrec
     def weightedSelect(wordPool: ArrayBuffer[Word], wordAcc: Set[Word], targetSize: Int): Set[Word] = {
       if (wordAcc.size == targetSize) {
@@ -121,13 +132,16 @@ final case class Practice(sessionType: Option[PracticeSessionType]) extends Comm
         val weights = inversePracticeCounts map (_ / sumInversePracticeCounts)
         val cumulativeWeights = weights.scanLeft(0.0)(_ + _)
 
+        val randomDouble = Random.nextDouble()
         // Get the index of the first element whose value is greater than or
         // equal to randomDouble
-        val randomDouble = Random.nextDouble()
         val index = cumulativeWeights.zipWithIndex.dropWhile {
           case (weight, index) => weight < randomDouble
         }.head._2
-        val word = wordPool(index)
+        // Limit the index so it's not out of bounds. This can happen when the
+        // double generated is larger the the cumulative weight of the last
+        // element.
+        val word = wordPool(min(index, wordPool.length - 1))
         weightedSelect(wordPool -= word, wordAcc + word, targetSize)
       }
     }
@@ -141,18 +155,27 @@ final case class Practice(sessionType: Option[PracticeSessionType]) extends Comm
     }
 
     val wordsSortedByNumTimesPracticed = allWords sortBy (_.numTimesPracticed)
+
+    // Take words that have never been practiced first. Take until we hit
+    // numWordsForThisSession or there are no more words that have never been
+    // practiced, whichever comes first.
     val wordsNeverPracticed = Random.shuffle(wordsSortedByNumTimesPracticed takeWhile (_.numTimesPracticed == 0)) take numWordsForThisSession
-    val wordsPracticed = if (wordsNeverPracticed.length < numWordsForThisSession) {
-      weightedSelect(ArrayBuffer(wordsSortedByNumTimesPracticed.dropWhile(_.numTimesPracticed == 0) : _*),
-        Set.empty[Word],
-        numWordsForThisSession - wordsNeverPracticed.length)
-    } else {
+
+    // If we don't have enough, add words from the weighted select
+    val wordsPracticed = if (wordsNeverPracticed.length == numWordsForThisSession) {
       Set.empty[Word]
+    } else {
+      val numWordsRemaining = numWordsForThisSession - wordsNeverPracticed.length
+      weightedSelect(
+        ArrayBuffer(wordsSortedByNumTimesPracticed.drop(wordsNeverPracticed.length): _*),
+        Set.empty[Word],
+        numWordsRemaining
+      )
     }
 
     wordsNeverPracticed.toSet ++ wordsPracticed
   }
 
-  @inline private def defaultPracticeSessionType = Half
+  @inline private def defaultPracticeSessionType = All
 }
 

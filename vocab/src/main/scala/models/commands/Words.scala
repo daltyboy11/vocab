@@ -9,6 +9,9 @@ case object Words extends Command {
   val definitionColumnTitle = "Definition"
   val partOfSpeechColumnTitle = "Part of Speech"
   val timesPracticedColumnTitle = "Times Practiced"
+  val noWordsMsg = """
+  You have no words to review!
+  """
 
   def splitDefinition(definition: Seq[String])(implicit maxColumnWidth: Int): Seq[String] = {
     @tailrec
@@ -105,6 +108,9 @@ case object Words extends Command {
     Seq(endBorder, header, middleBorder) ++ lines
   }
 
-  def run(implicit storage: Storage): Unit = generateTable foreach println 
+  def run(implicit storage: Storage): Unit = storage.getWords match {
+    case Nil => println(noWordsMsg)
+    case _ => generateTable foreach println
+  }
 }
 

@@ -66,17 +66,14 @@ case object Help extends Command {
   |       a session you must successfully recall each word 3 times.
   |       
   |       Available commands:
-  |         - r | recalled: go to the next word after you successfully recall
-  |                         the current word's definition and/or use it in a
-  |                         sentence.
+  |         - r: go to the next word after you successfully recall
+  |              the current word's definition and/or use it in a
+  |              sentence.
   |
-  |         - f | forgot:   go to the next word after you failed to recall the
-  |                         current word's definition and/or use it in a sentence.
+  |         - f: go to the next word after you failed to recall the
+  |              current word's definition and/or use it in a sentence.
   |
-  |         - s | show:     show the current word's definition and go to the next
-  |                         word.
-  |
-  |         - q | quit:     quit the practice session.
+  |         - q: quit the practice session.
   |
   |     Example Usage:
   |

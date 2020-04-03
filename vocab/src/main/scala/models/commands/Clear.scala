@@ -10,6 +10,7 @@ case object Clear extends Command {
         storage.clear()
         storage.commit()
       }
+      case "no" => ()
       case _ => go(readLine("Are you sure you want to delete all data? (yes/no): "))
     }
     go("")
