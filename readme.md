@@ -23,9 +23,7 @@ practice efficiency.
 You add a word by providing its name, definition, and optinally what part of
 speech to which it belongs
 
-// TODO - remove --type requirement
-
-`vocab add peregrination "a long and meandering journel" --type noun`
+`vocab add peregrination "a long and meandering journel" noun`
 
 ## Deleting words
 Delete words you're so familiar with that you no longer need practice.

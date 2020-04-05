@@ -8,22 +8,22 @@ case object Help extends Command {
   |     
   |     Commands:
   |
-  |       - vocab add <word> <definition> [--type type]
+  |       - vocab add <word> <definition> [type]
   |         Adds word to your vocabulary set with the given definition.
   |         Providing a word type is optional. <definition> MUST be 
   |         enclosed in double quotes.
   |       
-  |       - vocab modify <word> <newDefinition> [--type type]
+  |       - vocab modify <word> <newDefinition> [type]
   |         Change the definition of an exisiting <word> and (optional)
   |         type to <newDefinition>. <newDefinition> MUST be enclosed in
   |         double quotes.
   |       
-  |       - vocab delete <word> [--type type]
+  |       - vocab delete <word> [type]
   |         Deletes the words that match <word> and the optional type.
   |         If the type is not specified all words matching <word> are
   |         deleted.
   |       
-  |       Accepted values for [--type type]:
+  |       Accepted values for [type]:
   |         The type argument in the add, modify, and delete commands correspond
   |         to what part of speech the word belongs to
   |         
@@ -78,14 +78,14 @@ case object Help extends Command {
   |     Example Usage:
   |
   |       - add a word to the vocabulary set and then modify its definition
-  |           vocab add cat \"man\'s best friend\" --type noun
-  |           vocab modidfy cat \"a domesticated feline\" --type noun
+  |           vocab add cat \"man\'s best friend\" noun
+  |           vocab modidfy cat \"a domesticated feline\" noun
   |
   |       - start a practice session and review a quarter of all words
   |           vocab practice 0.25
   |
   |       - delete a word that you no longer need to review
-  |           vocab delete ardor \"enthusiasm or passion\" --type adjective
+  |           vocab delete ardor \"enthusiasm or passion\" adjective
   |
   |     Contributing:
   |       vocab is open source and available on github
