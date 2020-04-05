@@ -23,18 +23,18 @@ You add a word by providing its name, definition, and optinally what part of
 speech to which it belongs
 
 // TODO - remove --type requirement
+
 `vocab add peregrination "a long and meandering journel" --type noun`
 
 ## Deleting words
-Delete words you've being so familiar with that you no longer need practice.
+Delete words you're so familiar with that you no longer need practice.
 
 `vocab delete recrudescence`
 
 ## Modifying words
-Go back and modify a word's definition if you make a mistake
+Go back and modify a word's definition if you make a mistake.
 
-`vocab add affect "a change which is a result or consequence of an action or
-other cause"
+`vocab add affect "a change which is a result or consequence of an action or other cause"`
 
 Confusing affect with effect... whoops!
 
