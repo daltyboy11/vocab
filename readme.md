@@ -5,9 +5,10 @@ vocabulary.
 > The limits of my language mean the limits of my world.
   - Ludwig Wittgenstein
 
-Knowing lots of words isn't pedantry. Perhaps memorizing them is. But being able
+You can know a lot of words and not come off as pretentious. In fact, being able
 to draw on a large vocabulary to precisely express thoughts and ideas is an
-incredible ability; one we can all improve on.
+incredible ability to have; one we can all improve on. It sucks when the word
+you're looking for is just on the tip of your tongue!
 
 # Usage
 Use `vocab` to manage a list of words you'd like to become familiar with.
