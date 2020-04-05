@@ -7,7 +7,7 @@ vocabulary.
 
 Knowing lots of words isn't pedantry. Perhaps memorizing them is. But being able
 to draw on a large vocabulary to precisely express thoughts and ideas is an
-incredible ability; one we all improve on.
+incredible ability; one we can all improve on.
 
 # Usage
 Use `vocab` to manage a list of words you'd like to become familiar with.
