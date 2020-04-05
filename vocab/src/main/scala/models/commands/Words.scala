@@ -1,6 +1,6 @@
 package models
-import scala.annotation.tailrec
 import storage._
+import models.common._
 
 case object Words extends Command {
   implicit val maxColumnWidth = 35
@@ -12,30 +12,7 @@ case object Words extends Command {
   val noWordsMsg = """
   You have no words to review!
   """
-
-  def splitDefinition(definition: Seq[String])(implicit maxColumnWidth: Int): Seq[String] = {
-    @tailrec
-    def splitDefinitionAcc(definition: Seq[String], result: Seq[String]): Seq[String] = {
-      val headAndTail = definition.foldLeft((Seq.empty[String], Seq.empty[String])) { case ((head, tail), word) =>
-        val numWhitespaceChars = if (head.length > 1) head.length - 1 else 0
-        val totalCharsOnLine = numWhitespaceChars + (if (head.length > 0) head.map(_.length).reduce(_ + _) else 0)
-        if (totalCharsOnLine + word.length + 1 <= maxColumnWidth) {
-          (head :+ word, tail)
-        } else {
-          (head, tail :+ word)
-        }
-      }
-
-      if (headAndTail._2.length == 0) {
-        // we are done
-        result ++ List(headAndTail._1.mkString(" "))
-      } else {
-        splitDefinitionAcc(headAndTail._2, result ++ List(headAndTail._1.mkString(" ")))
-      }
-    }
-    splitDefinitionAcc(definition, Seq.empty[String])
-  }
-  
+    
   def generateTable(implicit storage: Storage): Seq[String] = {
     val words = storage.getWords
     val wordColumnWidth = words.map(_.word.length).max
@@ -66,6 +43,8 @@ case object Words extends Command {
       val partOfSpeech = if (word.partOfSpeech.isDefined) word.partOfSpeech.get.asString else ""
       val definitionLines = splitDefinition(word.definition.split(" "))
       definitionLines.zipWithIndex flatMap { case (definitionLine, definitionIndex) =>
+        // TODO - only need to put the word part in the if statement
+        // avoid duplicating code
         val line = if (definitionIndex == 0) {
           "| " +
           word.word +

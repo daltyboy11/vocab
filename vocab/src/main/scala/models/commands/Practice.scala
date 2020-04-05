@@ -7,18 +7,33 @@ import scala.math.min
 import scala.util.Random
 
 import storage._
+import models.common.splitDefinition
 
 object Practice {
   val recalledArg = "r"
+  val recalledLongArg = "recalled"
   val forgotArg = "f"
+  val forgotLongArg = "forgot"
+  val showArg = "s"
+  val showLongArg = "show"
   val quitArg = "q"
+  val quitLongArg = "quit"
   val usageMessage = """
-  commands:
-   - r: go to the next word after successfully recalling the word
-   - f: go to the next word after failing to recall the word
-   - q: quit 
-  """
+commands:
+ - r | recalled:  go to the next word after successfully recalling the word
+ - f | forgot:    go to the next word after failing to recall the word
+ - s | show:      display the definition of the word
+ - q | quit:      end the practice session early
+"""
   val noWordsMessage = "You have no words to practice!"
+  val inputPrompt = "input: "
+  val sleepDuration = 500
+  val recalledMsg = "Recalled!"
+  val notRecalledMsg = "Not Recalled!"
+  val partOfSpeechColWidth = 10
+  val definitionColWidth = 35 
+  val completionMsg = (numComplete: Int, total: Int) => s"Practice Session Completed ($numComplete/$total words)"
+  val quitMsg = (numComplete: Int, total: Int) => s"Practice Session Aborted ($numComplete/$total words)"
 }
 
 final case class Practice(sessionType: Option[PracticeSessionType]) extends Command {
@@ -37,9 +52,6 @@ final case class Practice(sessionType: Option[PracticeSessionType]) extends Comm
     def currentWord = _words.head
 
     def practice(recalled: Boolean): PracticeSessionRun = recalled match {
-      // TODO: randomally shuffling the word set every time is inefficient
-      // asymptotically. This is ok as long as it doesn't affect the user.
-      // Investigation is required.
       case true => {
         val numRecalls = completions(currentWord) + 1
         val nextWords = numRecalls match {
@@ -63,27 +75,51 @@ final case class Practice(sessionType: Option[PracticeSessionType]) extends Comm
       practiceSessionWords.toSeq,
       practiceSessionWords.foldLeft(Map[Word, Int]())((map, word) => map + (word -> 0))
     )
+
     var didQuit = false
+    var showDefinition = false
 
     while (!(practiceSession.isFinished || didQuit)) {
       val currentWord = practiceSession.currentWord
-      val wordMsg = currentWord.partOfSpeech match {
-        case Some(speechPart) => s"${currentWord.word} (${speechPart})"
-        case None => s"${currentWord.word}"
-      }
+      // Display the word without its definition
+      val wordMsg = tableRow(
+        word = currentWord,
+        wordColor = Console.WHITE,
+        showDefinition = showDefinition,
+        wordColWidth = currentWord.word.length,
+        definitionColWidth = definitionColWidth,
+        partOfSpeechColWidth = partOfSpeechColWidth 
+      ) mkString "\n"
+
       println(wordMsg)
 
-      StdIn.readChar().toString match {
-        case `recalledArg` => {
-          println(Console.GREEN + s"${currentWord.definition}" + Console.WHITE + "\r")
+      StdIn.readLine(inputPrompt).toString match {
+        case `recalledArg` | `recalledLongArg` => {
+          println(Console.GREEN + recalledMsg + Console.WHITE)
+          Thread.sleep(sleepDuration)
+          println("\u001b[2J")
           practiceSession = practiceSession.practice(true)
+          showDefinition = false
         }
-        case `forgotArg` => {
-          println(Console.RED + s"${currentWord.definition}" + Console.WHITE + "\r")
+        case `forgotArg`  | `forgotLongArg` => {
+          println(Console.RED + notRecalledMsg + Console.WHITE)
+          Thread.sleep(sleepDuration)
+          println("\u001b[2J")
           practiceSession = practiceSession.practice(false)
+          showDefinition = false
         }
-        case `quitArg` => didQuit = true
-        case _ => println(usageMessage)
+        case `showArg` | `showLongArg` => {
+          println("\u001b[2J")
+          showDefinition = true
+        }
+        case `quitArg` | `quitLongArg` => {
+          didQuit = true
+          println("\u001b[2J")
+        }
+        case _ =>  {
+          println("\u001b[2J")
+          println(usageMessage)
+        }
       }
     }
 
@@ -94,8 +130,24 @@ final case class Practice(sessionType: Option[PracticeSessionType]) extends Comm
     }
 
     // Show completion message
-    val completionMsg = s"practice session complete (${practiceSession.completions.size}/${practiceSessionWords.size})"
-    println(completionMsg)
+    val maxWordLen = practiceSessionWords.map(_.word.length).max
+    practiceSessionWords.toList.zipWithIndex.map { case (word, i) =>
+      val wordColor = if (practiceSession.completions(word) < 3) Console.RED else Console.GREEN
+      val row = tableRow(
+        word = word,
+        wordColor = wordColor,
+        showDefinition = true,
+        wordColWidth = maxWordLen,
+        definitionColWidth = definitionColWidth,
+        partOfSpeechColWidth = partOfSpeechColWidth 
+      )
+      if (i == 0) row else row.drop(3)
+    }.map(_ mkString "\n").foreach(println)
+    if (didQuit) {
+      println(quitMsg(practiceSession.completions.filter(_._2 == 3).size, practiceSessionWords.size))
+    } else {
+      println(completionMsg(practiceSession.completions.filter(_._2 == 3).size, practiceSessionWords.size))
+    }
 
     // Save the practice session
     val session = PracticeSession(
@@ -174,6 +226,56 @@ final case class Practice(sessionType: Option[PracticeSessionType]) extends Comm
     }
 
     wordsNeverPracticed.toSet ++ wordsPracticed
+  }
+
+  /*
+   * Generates a table entry for a word + definition pair.
+   * The color of the word will be `wordColor` (e.g. Console.BLUE, etc).
+   * If showDefinition is false then the definition column will be empty.
+   */
+  def tableRow(
+    word: Word,
+    wordColor: String,
+    showDefinition: Boolean,
+    wordColWidth: Int,
+    definitionColWidth: Int,
+    partOfSpeechColWidth: Int
+  ): Seq[String] = {
+    implicit val maxColumnWidth = 35
+    val header = "| " +
+                 "word" + " " * (wordColWidth - "word".length) +
+                 " | " +
+                 "definition" + " " * (definitionColWidth - "definition".length) +
+                 " | " +
+                 "part of speech" + " " * (partOfSpeechColWidth - "part of speech".length) +
+                 " |"
+    val top = "-" * header.length
+
+    val partOfSpeech = if (word.partOfSpeech.isDefined) word.partOfSpeech.get.asString else ""
+    val definitionLines = splitDefinition(word.definition.split(" "))
+    val body = definitionLines.zipWithIndex.map { case (line, index) =>
+      val wordPart = if (index == 0) {
+        wordColor + word.word + Console.WHITE + " " * (wordColWidth - word.word.length)
+      } else {
+        " " * wordColWidth
+      }
+
+      val definitionPart = if (showDefinition) {
+        line + " " * (definitionColWidth - line.length)
+      } else {
+        " " * definitionColWidth
+      }
+
+      val partOfSpeechPart = if (index == 0) {
+        partOfSpeech + " " * ("part of speech".length - partOfSpeech.length)
+      } else {
+        " " * "part of speech".length
+      }
+
+      "| " + wordPart + " | " + definitionPart + " | " + partOfSpeechPart + " |"
+    }
+
+    Seq(top, header, top) ++ body ++ Seq(top)
   }
 
   @inline private def defaultPracticeSessionType = All

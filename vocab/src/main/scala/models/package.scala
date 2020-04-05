@@ -1,6 +1,38 @@
 package models
+import scala.annotation.tailrec
 
 package object models {
+  object common {
+    /*
+     * Given a sequence of strings implied to separtated by whitespace this
+     * function will transform that string into a sequence of "lines" satisfying
+     * a maximum length requirement and ensuring that each string in the
+     * original sequence is on one and ONLY one line.
+     */
+    def splitDefinition(definition: Seq[String])(implicit maxColumnWidth: Int): Seq[String] = {
+      @tailrec
+      def splitDefinitionAcc(definition: Seq[String], result: Seq[String]): Seq[String] = {
+        val headAndTail = definition.foldLeft((Seq.empty[String], Seq.empty[String])) { case ((head, tail), word) =>
+          val numWhitespaceChars = if (head.length > 1) head.length - 1 else 0
+          val totalCharsOnLine = numWhitespaceChars + (if (head.length > 0) head.map(_.length).reduce(_ + _) else 0)
+          if (totalCharsOnLine + word.length + 1 <= maxColumnWidth) {
+            (head :+ word, tail)
+          } else {
+            (head, tail :+ word)
+          }
+        }
+
+        if (headAndTail._2.length == 0) {
+          // we are done
+          result ++ List(headAndTail._1.mkString(" "))
+        } else {
+          splitDefinitionAcc(headAndTail._2, result ++ List(headAndTail._1.mkString(" ")))
+        }
+      }
+      splitDefinitionAcc(definition, Seq.empty[String])
+    }
+
+  }
   object implicits {
     sealed trait ToCSVRepr {
       def toCSVRepr(): String
