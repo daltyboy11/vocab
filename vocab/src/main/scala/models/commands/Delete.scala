@@ -5,7 +5,7 @@ object Delete {
   sealed trait Result
   object Result {
     final object NotFound extends Result
-    final object Deleted extends Result
+    final case class Deleted(words: Set[Word]) extends Result
   }
 }
 
@@ -13,14 +13,15 @@ case class Delete(word: String, partOfSpeech: Option[SpeechPart]) extends Comman
   import Delete._
 
   def run(implicit storage: Storage): Unit = {
-    val consoleOutput = runLogic match {
-      case Result.NotFound => s"$word not found"
-      case Result.Deleted => partOfSpeech match {
-        case Some(speechPart) => s"$word - $speechPart deleted"
-        case None => s"$word deleted"
+    runLogic match {
+      case Result.NotFound => println(s"$word not found")
+      case Result.Deleted(words) => words foreach { case word =>
+        val wordString = word.partOfSpeech match {
+          case None => word.word
+          case Some(speechPart) => s"${word.word} ($speechPart)"
+        }
       }
     }
-    println(consoleOutput)
   }
 
   private def runLogic(implicit storage: Storage): Result = {
@@ -32,14 +33,14 @@ case class Delete(word: String, partOfSpeech: Option[SpeechPart]) extends Comman
       } else {
         storage.deleteWords(word)
         storage.commit
-        Result.Deleted
+        Result.Deleted(dupes.toSet)
       }
       case Some(speechPart) => if (dupes.isEmpty) {
         Result.NotFound
       } else {
         storage.deleteWord(word, speechPart)
         storage.commit
-        Result.Deleted
+        Result.Deleted(Set(dupes.head))
       }
     }
   }

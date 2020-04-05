@@ -130,10 +130,12 @@ object CommandLine {
     case invalid                        => Invalid(invalid.substring(2))
   }
   
-  private def isValidSpeechPart(speechPart: String) = speechPart == nounArg |
+  private def isValidSpeechPart(speechPart: String) =
+    speechPart == nounArg |
     speechPart == verbArg |
     speechPart == pronounArg |
     speechPart == adjectiveArg |
+    speechPart == adverbArg |
     speechPart == prepositionArg |
     speechPart == conjunctionArg |
     speechPart == interjectionArg
