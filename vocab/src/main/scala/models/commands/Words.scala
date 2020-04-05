@@ -43,8 +43,6 @@ case object Words extends Command {
       val partOfSpeech = if (word.partOfSpeech.isDefined) word.partOfSpeech.get.asString else ""
       val definitionLines = splitDefinition(word.definition.split(" "))
       definitionLines.zipWithIndex flatMap { case (definitionLine, definitionIndex) =>
-        // TODO - only need to put the word part in the if statement
-        // avoid duplicating code
         val line = if (definitionIndex == 0) {
           "| " +
           word.word +
