@@ -9,7 +9,7 @@ class WordsCommandTests extends BaseCommandTests {
       "passion")
     val expected = Seq("enthusiasm or passion")
     assertResult(expected) {
-      Words.splitDefinition(definition)
+      models.common.splitDefinition(definition)
     }
   }
 
@@ -21,7 +21,7 @@ class WordsCommandTests extends BaseCommandTests {
       "the violent seizure of the property",
       "belonging to someone")
     assertResult(expected) {
-      Words.splitDefinition(definition)
+      models.common.splitDefinition(definition)
     }
   }
 
@@ -31,7 +31,7 @@ class WordsCommandTests extends BaseCommandTests {
       "four", "four", "four", "four", "four", "four")
     val expected = definition
     assertResult(expected) {
-      Words.splitDefinition(definition)
+      models.common.splitDefinition(definition)
     }
   }
 
