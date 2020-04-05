@@ -42,38 +42,39 @@ object CommandLine {
         if (isValidSpeechPart(typeName)) {
           Right(Add(word, definition, Some(partOfSpeechFromString(typeName))))
         } else {
-          Left(ParseErrorInvalidAddCommand())
+          Left(ParseErrorInvalidAddCommand(s"$typeName is not a valid part of speech!"))
         }
       // add word definition
       case `addArgName` :: word :: definition :: _ => Right(Add(word, definition, None))
       // add word
-      case `addArgName` :: word :: Nil => Left(ParseErrorInvalidAddCommand()) // missing definition
+      case `addArgName` :: word :: Nil => Left(ParseErrorInvalidAddCommand("missing definition!"))
       // add
-      case `addArgName` :: Nil => Left(ParseErrorInvalidAddCommand()) // missing word
+      case `addArgName` :: Nil => Left(ParseErrorInvalidAddCommand("missing word!"))
 
       // modify word newDefinition type
       case `modifyArgName` :: word :: newDefinition :: typeName :: _ =>
         if (isValidSpeechPart(typeName)) {
           Right(Modify(word, newDefinition, Some(partOfSpeechFromString(typeName))))
         } else {
-          Left(ParseErrorInvalidModifyCommand())
+          Left(ParseErrorInvalidModifyCommand(s"$typeName is not a valid part of speech!"))
         }
       // modify word newDefinition
       case `modifyArgName` :: word :: newDefinition :: _ => Right(Modify(word, newDefinition, None))
       // modify word
-      case `modifyArgName` :: word :: Nil => Left(ParseErrorInvalidModifyCommand()) // missing definition
+      case `modifyArgName` :: word :: Nil => Left(ParseErrorInvalidModifyCommand("missing definition!"))
       // modify
-      case `modifyArgName` :: Nil => Left(ParseErrorInvalidModifyCommand()) // missing word
+      case `modifyArgName` :: Nil => Left(ParseErrorInvalidModifyCommand("missing word!")) // missing word
 
       // delete word type
       case `deleteArgName` :: word :: typeName :: _ =>
         if (isValidSpeechPart(typeName)) {
           Right(Delete(word, Some(partOfSpeechFromString(typeName))))
         } else {
-          Left(ParseErrorInvalidDeleteCommand())
+          Left(ParseErrorInvalidDeleteCommand(s"$typeName is not a valid part of speech!"))
         }
       // delete word
       case `deleteArgName` :: word :: _ => Right(Delete(word, None))
+      case `deleteArgName` :: _ => Left(ParseErrorInvalidDeleteCommand("missing word!"))
 
       // practice practiceSessionType
       case `practiceArgName` :: practiceSessionType :: _ => practiceSessionType match {
@@ -84,7 +85,7 @@ object CommandLine {
         } else if (n.toFloatOption.isDefined && n.toFloat > 0.0 && n.toFloat <= 1.0) {
           Right(Practice(Some(PercentageNumeric(n.toFloat))))
         } else {
-          Left(ParseErrorInvalidPracticeCommand())
+          Left(ParseErrorInvalidPracticeCommand(s"$n is not an acceptable practice session type!"))
         }
       }
       // practice

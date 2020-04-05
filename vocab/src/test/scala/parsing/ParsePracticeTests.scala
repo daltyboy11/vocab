@@ -6,7 +6,7 @@ import models._
 class ParsePracticeTests extends AnyFunSuite {
   test("Parse practice invalid argument") {
     val args = List("practice", "I", "think", "therefore", "I", "am")
-    assertResult(Left(ParseErrorInvalidPracticeCommand())) {
+    assertResult(Left(ParseErrorInvalidPracticeCommand("I is not an acceptable practice session type!"))) {
       CommandLine.parseArgs(args)
     }
   }
@@ -41,7 +41,7 @@ class ParsePracticeTests extends AnyFunSuite {
 
   test("Parse practice numeric invalid") {
     val args = List("practice", "-120")
-    assertResult(Left(ParseErrorInvalidPracticeCommand())) {
+    assertResult(Left(ParseErrorInvalidPracticeCommand("-120 is not an acceptable practice session type!"))) {
       CommandLine.parseArgs(args)
     }
   }
@@ -55,7 +55,7 @@ class ParsePracticeTests extends AnyFunSuite {
 
   test("Parse practice percentage invalid") {
     val args = List("practice", "69.69")
-    assertResult(Left(ParseErrorInvalidPracticeCommand())) {
+    assertResult(Left(ParseErrorInvalidPracticeCommand("69.69 is not an acceptable practice session type!"))) {
       CommandLine.parseArgs(args)
     }
   }

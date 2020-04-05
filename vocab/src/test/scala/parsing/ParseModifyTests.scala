@@ -12,7 +12,7 @@ class ParseModifyTests extends AnyFunSuite {
 
   test("Modify missing definition") {
     val args = List("modify","trump")
-    assertResult(Left(ParseErrorInvalidModifyCommand())) {
+    assertResult(Left(ParseErrorInvalidModifyCommand("missing definition!"))) {
       CommandLine.parseArgs(args)
     }
   }
@@ -26,7 +26,14 @@ class ParseModifyTests extends AnyFunSuite {
 
   test("Modify with part of speech invalid") {
     val args = List("modify", "wow", "used to express strong feeling", "exclamation")
-    assertResult(Left(ParseErrorInvalidModifyCommand())) {
+    assertResult(Left(ParseErrorInvalidModifyCommand("exclamation is not a valid part of speech!"))) {
+      CommandLine.parseArgs(args)
+    }
+  }
+
+  test("Modify missing word") {
+    val args = List("modify")
+    assertResult(Left(ParseErrorInvalidModifyCommand("missing word!"))) {
       CommandLine.parseArgs(args)
     }
   }
