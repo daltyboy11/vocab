@@ -1,3 +1,4 @@
+/*
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.BeforeAndAfter
 import scala.util.Random
@@ -46,3 +47,4 @@ class BaseCommandTests extends AnyFunSuite with BeforeAndAfter {
 
   def deleteFile(file: String) = { new File(s"${projectDir}/src/test/scala/commands/$file").delete() }
 }
+*/

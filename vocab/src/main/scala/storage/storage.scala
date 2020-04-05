@@ -4,18 +4,14 @@ import scala.io.Source
 import java.io._
 import models._
 
-case class Storage(pathToStorage: String, wordStorage: String = "words.csv", practiceSessionStorage: String = "practice_sessions.csv") {
-
+case class Storage(wordStorage: String = "words.csv", practiceSessionStorage: String = "practice_sessions.csv") {
   import models.implicits._
 
-  val wordStoragePath = pathToStorage + "/" + wordStorage
-  val practiceSessionStoragePath = pathToStorage + "/" + practiceSessionStorage
-
   private var words: Seq[Word] =
-    (for (line <- Source.fromFile(wordStoragePath).getLines) yield line.get[Word]).toSeq
+    (for (line <- Source.fromResource(wordStorage).getLines) yield line.get[Word]).toSeq
 
   private var practiceSessions: Seq[PracticeSession] =
-    (for (line <- Source.fromFile(practiceSessionStoragePath).getLines) yield line.get[PracticeSession]).toSeq
+    (for (line <- Source.fromResource(practiceSessionStorage).getLines) yield line.get[PracticeSession]).toSeq
 
   def getWords: Seq[Word] = words
   def getPracticeSessions: Seq[PracticeSession] = practiceSessions
@@ -76,8 +72,9 @@ case class Storage(pathToStorage: String, wordStorage: String = "words.csv", pra
    *  class.
    */
   def commit(): Unit = {
-    def writeFile(filename: String, lines: Seq[String]): Unit = {
-      val file = new File(filename)
+    def writeFile(resourceName: String, lines: Seq[String]): Unit = {
+      println(s"getting resource $resourceName")
+      val file = new File(getClass.getClassLoader.getResource(resourceName).getFile)
       val bufferedWriter = new BufferedWriter(new FileWriter(file))
       for (line <- lines) {
         bufferedWriter.write(line + "\n")
@@ -86,7 +83,7 @@ case class Storage(pathToStorage: String, wordStorage: String = "words.csv", pra
     }
     val wordLines = words.map(_.toCSVRepr)
     val practiceSessionLines = practiceSessions.map(_.toCSVRepr)
-    writeFile(wordStoragePath, wordLines)
-    writeFile(practiceSessionStoragePath, practiceSessionLines)
+    writeFile(wordStorage, wordLines)
+    writeFile(practiceSessionStorage, practiceSessionLines)
   }
 }

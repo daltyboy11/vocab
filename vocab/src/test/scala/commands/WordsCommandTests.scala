@@ -1,5 +1,6 @@
 import models._
 
+/*
 class WordsCommandTests extends BaseCommandTests {
   test("split definition 1") {
     implicit val maxColumnWidth = 35
@@ -64,3 +65,4 @@ class WordsCommandTests extends BaseCommandTests {
     }
   }
 }
+*/

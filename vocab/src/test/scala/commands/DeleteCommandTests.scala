@@ -1,6 +1,7 @@
 import org.scalatest.BeforeAndAfter
 import models._
 
+/*
 class DeleteCommandTests extends BaseCommandTests with BeforeAndAfter {
   private def readonlyStorageWords: Seq[Word] = makeStorage("test_delete_words.csv",
     "practice_sessions_read_only.csv").getWords
@@ -73,3 +74,4 @@ class DeleteCommandTests extends BaseCommandTests with BeforeAndAfter {
     }
   }
 }
+*/
