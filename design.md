@@ -1,59 +1,8 @@
-Motivation, design, and specification for the vocab utility
-
-# Motivation
-I recently took the course Learning how To Learn on Coursera. Shortly before
-that I began reading Ron Chernow's Alexander Hamilton biography. There are many
-words in that biography I didn't know and was unable to infer from the context.
-Because I was coming across so many unknown words during my reading, I
-established a scheme for expanding my vocabulary that I would practice daily:
-
-During the day, when I come across a new word, I write it down
-in a little notebook. New words find me through my daily reading of books, web
-articles, etc. Before I go to sleep I review the words recorded in the previous
-five days, the current day inclusive. I consider a word "reviewed" when, during the study session, I can
-recite its definition from memory AND come up with a sentence that uses it.
-Using it in a sentence is important. What is the utility in knowing a word if
-you cannot reognize the context in which it can be used?
-
-As the Learning How To Learn instructors would describe it, this is like a chunk
-where you don't understand the underlying ideas. Yes it's still a chunk, just
-not a very useful one.
-
-The study session is over when I can go through the entire list twice and review
-each word without fail.
-
-As you might guess, this scheme was very time consuming at first. However, over
-time I would record fewer words each day because I had already learned so many!
-After sticking with the initial onslaught of words it became much more
-manageable. The workload is proportional to your current vocabulary AND how much
-you read.
-
-While taking Learning how to learn I realized I had been employing the technique
-called "spaced repetition" in my vocabulary studies without knowing it by name
-or recognizing its greater significance as a highly effective learning technique.
-
-I aim to build a command line utility to automate the review process (i.e. I
-don't have to go through the pages of my little notebook to find the words I
-need to recite) and streamline my practice. It would be nice if I could easily
-add words to my repretoire and invoke a study session buy typing only a few
-words on the command line. Also, I will be able to do away with my little
-notebook and [save the
-trees](https://twosidesna.org/US/going-paperless-does-not-save-trees/).
-
-Furthermore, [_the limits of your language are the limits of your
-world_](https://oregonstate.edu/instruct/phl201/modules/Philosophers/Wittgenstein/wittgenstein.html).
-I hope to provide a useful tool to others so that they may expand their
-vocabulary and use more precise language to articulate their thoughts. Don't you
-hate it when you can't satisfactorily convey an argument or idea to someone
-because you forgot the word for it?
+Design and Specification
 
 # Description
-`vocab` is a command line utility to help you memorize words and expand your
-vocabulary. It puts to use the concept of "spaced repetition" to maximize
-efficiency in your studies. To learn more about spaced repetition and other
-powerful learning techniques, review 
-
-`vocab` is only available in English.
+`vocab` is a command line utility for learning new words and expanding your
+vocabulary.
 
 # V1 Features
 The most basic feature set.
@@ -110,40 +59,86 @@ words in the session
 ### Interactive practice - how it works
 Launching a practice session makes the program interactive.
 
-A word will be presented without its definition. At this point you should
-attempt to recall its definition and/or use it in a sentence. When you are
-satisfied with your attempt, use one of the commands to move on to the next word
-or quit the session. To finish a session you must successfully recall each word
-three times.
+A word and what part of speech it is (e.g. noun) is presented in the console
+without its definition. The user should try and recall the definition of the
+word and use it in a sentence.
+
+Once the user either tries to recall the word or give up, they can use the
+`show` command to display the definition. This is so they can verify if they've
+successfully recalled the word.
+
+Once the user knows if they've successfully recalled the word, they indicate
+this with the `recalled` command. If they were unable to recall the word they
+indicate this with the `forgot` command.
+
+The user repeats this process until they recall each word three times or if
+they quit the practice session early.
 
 #### Available commands
 The following commands are available to you during the practice session
 
-- `r | recalled`: go to the next word after you successfully recall the current word's definition and/or used it in a sentence.
-- `f | forgot`: move on to the next word after you failed to recall the current word's definition and/or used it in a sentence.
-- `s | show`: show the current word's definition.
-- `q | quit`: quit the practice session 
+- `r | recalled`:   go to the next word after you successfully recall the
+                    current word's definition and/or used it in a sentence.
+
+- `f | forgot`:     move on to the next word after you failed to recall the
+                    current word's definition and/or used it in a sentence.
+
+- `s | show`:       show the current word's definition.
+
+- `q | quit`:       quit the practice session 
 
 ## How are words selected for a practice session?
-If you have added words that have **never** been practice before these will be
-selected first (at random from the set of all words that have never been
-practiced). If the practice set is still not full, the remaining words are
-randomly selected based on a probability weighting where the weight of the word
-is the inverse of how many times it has been rehearsed before:
+If you have words that have **never** been practiced, these will be selected
+first (at random). If the practice set has not hit its target number of words
+the remaining words are chosen based on a weighted random selection, where the
+weight inversely proportional to the number of times the word has been
+practiced. That is, words that have been practiced more are less likely to be
+chosen, based on the idea that words you have practiced more require less
+frequent practice to retain.
 
-Assign a value of 1 / (practice count) to each
-remaining word. Sum the total and divide each value by the total to get the weight.
-Compute the array of cumulative sums of the weights. Generate a random number
-between 0.0 and 1.0 and add the word associated with the range to the practice set. Remove
-this word from the selection pool. Repeat until the set is full.
+# Motivation
+I recently took the course Learning how To Learn on Coursera. Shortly before
+that I began reading Ron Chernow's Alexander Hamilton biography. There are many
+words in that biography I didn't know and was unable to infer from the context.
+Because I was coming across so many unknown words during my reading, I
+established a scheme for expanding my vocabulary that I would practice daily:
 
-### Note on the selection algorithm
-If m is the number of words needed for the practice session and n is the total
-number of words then the selection algorithm is O(m * n). I believe this will
-work in practice because the total word set should not get too large. As a user
-becomes so familiar with a word that they no longer practice it, they will
-delete it from the set. Furthermore, the rate at which users will learn new
-words is small, even if they read a lot (words are expected to be added
-organically as the user reads material while going about their daily lives...
-this tool is **NOT** intended for someone to simply dump a dictionary into the
-program and start practicing).
+During the day, when I come across a new word, I write it down
+in a little notebook. New words find me through my daily reading of books, web
+articles, etc. Before I go to sleep I review the words recorded in the previous
+five days, the current day inclusive. I consider a word "reviewed" when, during the study session, I can
+recite its definition from memory AND come up with a sentence that uses it.
+Using it in a sentence is important. What is the utility in knowing a word if
+you cannot reognize the context in which it can be used?
+
+As the Learning How To Learn instructors would describe it, this is like a chunk
+where you don't understand the underlying ideas. Yes it's still a chunk, just
+not a very useful one.
+
+The study session is over when I can go through the entire list twice and review
+each word without fail.
+
+As you might guess, this scheme was very time consuming at first. However, over
+time I would record fewer words each day because I had already learned so many!
+After sticking with the initial onslaught of words it became much more
+manageable. The workload is proportional to your current vocabulary AND how much
+you read.
+
+While taking Learning how to learn I realized I had been employing the technique
+called "spaced repetition" in my vocabulary studies without knowing it by name
+or recognizing its greater significance as a highly effective learning technique.
+
+I aim to build a command line utility to automate the review process (i.e. I
+don't have to go through the pages of my little notebook to find the words I
+need to recite) and streamline my practice. It would be nice if I could easily
+add words to my repretoire and invoke a study session buy typing only a few
+words on the command line. Also, I will be able to do away with my little
+notebook and [save the
+trees](https://twosidesna.org/US/going-paperless-does-not-save-trees/).
+
+Furthermore, [_the limits of your language are the limits of your
+world_](https://oregonstate.edu/instruct/phl201/modules/Philosophers/Wittgenstein/wittgenstein.html).
+I hope to provide a useful tool to others so that they may expand their
+vocabulary and use more precise language to articulate their thoughts. Don't you
+hate it when you can't satisfactorily convey an argument or idea to someone
+because you forgot the word for it?
