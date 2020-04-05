@@ -13,7 +13,6 @@ object CommandLine {
     val practiceHalfArgName           = "half"
     val helpArgName                   = "help"
     val versionArgName                = "version"
-    val typeArg                       = "--type"
     val nounArg                       = "noun"
     val verbArg                       = "verb"
     val pronounArg                    = "pronoun"
@@ -26,6 +25,8 @@ object CommandLine {
   }
 
   import Args._
+
+  // TODO: Add error messages
   
   /** Parses the arguments passed to the program and returns a command (if the
    *  arguments were valid) or a parsing error giving the reason for the parse
@@ -36,83 +37,72 @@ object CommandLine {
    */
   def parseArgs(args: Seq[String]): Either[ParseError, Command] = {
     args.toList match {
-      // Parse Add
-      case `addArgName` :: word :: definition :: typeArgName :: typeName :: _ =>
-        if (isLowercaseAlphabetical(word) && typeArgName == typeArg && isValidSpeechPart(typeName)) {
+      // add word definition type
+      case `addArgName` :: word :: definition :: typeName :: _ =>
+        if (isValidSpeechPart(typeName)) {
           Right(Add(word, definition, Some(partOfSpeechFromString(typeName))))
         } else {
           Left(ParseErrorInvalidAddCommand())
         }
-      case `addArgName` :: word :: definition :: typeArgName :: _ => Left(ParseErrorInvalidAddCommand()) // missing type
-      case `addArgName` :: word :: definition :: _ =>
-        if (isLowercaseAlphabetical(word)) {
-          Right(Add(word, definition, None))
-        } else {
-          Left(ParseErrorInvalidWord(word))
-        }
+      // add word definition
+      case `addArgName` :: word :: definition :: _ => Right(Add(word, definition, None))
+      // add word
       case `addArgName` :: word :: Nil => Left(ParseErrorInvalidAddCommand()) // missing definition
+      // add
       case `addArgName` :: Nil => Left(ParseErrorInvalidAddCommand()) // missing word
 
-      // Parse Modify
-      case `modifyArgName` :: word :: newDefinition :: typeArgName :: typeName :: _ =>
-        if (isLowercaseAlphabetical(word) && typeArgName == typeArg && isValidSpeechPart(typeName)) {
+      // modify word newDefinition type
+      case `modifyArgName` :: word :: newDefinition :: typeName :: _ =>
+        if (isValidSpeechPart(typeName)) {
           Right(Modify(word, newDefinition, Some(partOfSpeechFromString(typeName))))
         } else {
           Left(ParseErrorInvalidModifyCommand())
         }
-      case `modifyArgName` :: word :: newDefinition :: typeArgName :: _ => Left(ParseErrorInvalidModifyCommand()) // missing type
-      case `modifyArgName` :: word :: newDefinition :: _ =>
-        if (isLowercaseAlphabetical(word)) {
-          Right(Modify(word, newDefinition, None))
-        } else {
-          Left(ParseErrorInvalidWord(word))
-        }
+      // modify word newDefinition
+      case `modifyArgName` :: word :: newDefinition :: _ => Right(Modify(word, newDefinition, None))
+      // modify word
       case `modifyArgName` :: word :: Nil => Left(ParseErrorInvalidModifyCommand()) // missing definition
+      // modify
       case `modifyArgName` :: Nil => Left(ParseErrorInvalidModifyCommand()) // missing word
 
-      // Parse Delete
-      case `deleteArgName` :: word :: typeArgName :: typeName :: _ =>
-        if (isLowercaseAlphabetical(word) && typeArgName == typeArg && isValidSpeechPart(typeName)) {
+      // delete word type
+      case `deleteArgName` :: word :: typeName :: _ =>
+        if (isValidSpeechPart(typeName)) {
           Right(Delete(word, Some(partOfSpeechFromString(typeName))))
         } else {
           Left(ParseErrorInvalidDeleteCommand())
         }
-      case `deleteArgName` :: word :: typeArgName :: _ => Left(ParseErrorInvalidDeleteCommand()) // missing type
-      case `deleteArgName` :: word :: _ =>
-        if (isLowercaseAlphabetical(word)) {
-          Right(Delete(word, None))
-        } else {
-          Left(ParseErrorInvalidWord(word))
-        }
+      // delete word
+      case `deleteArgName` :: word :: _ => Right(Delete(word, None))
 
-      // Parse Practice
-      case `practiceArgName` :: practiceSessionType :: _ =>
-        if (practiceSessionType == practiceAllArgName) {
-          Right(Practice(Some(All)))
-        } else if (practiceSessionType == practiceHalfArgName) {
-          Right(Practice(Some(Half)))
-        } else if (practiceSessionType.toIntOption.isDefined && practiceSessionType.toInt > 0) {
-          Right(Practice(Some(ExplicitNumeric(practiceSessionType.toInt))))
-        } else if (practiceSessionType.toFloatOption.isDefined && practiceSessionType.toFloat > 0.0 && practiceSessionType.toFloat <= 1.0) {
-          Right(Practice(Some(PercentageNumeric(practiceSessionType.toFloat))))
+      // practice practiceSessionType
+      case `practiceArgName` :: practiceSessionType :: _ => practiceSessionType match {
+        case `practiceAllArgName` => Right(Practice(Some(All)))
+        case `practiceHalfArgName` => Right(Practice(Some(Half)))
+        case n => if (n.toIntOption.isDefined && n.toInt > 0) {
+          Right(Practice(Some(ExplicitNumeric(n.toInt))))
+        } else if (n.toFloatOption.isDefined && n.toFloat > 0.0 && n.toFloat <= 1.0) {
+          Right(Practice(Some(PercentageNumeric(n.toFloat))))
         } else {
           Left(ParseErrorInvalidPracticeCommand())
         }
+      }
+      // practice
       case `practiceArgName` :: _ => Right(Practice(None))
 
-      // Parse Words
+      // words
       case `wordsArgName` :: _ => Right(Words)
 
-      // Parse Help
+      // help
       case `helpArgName` :: _ => Right(Help)
 
-      // Parse Version
+      // version
       case `versionArgName` :: _ => Right(Version)
 
-      // Clear
+      // clear
       case `clearArg` :: _ => Right(Clear)
 
-      // Generic Parse Error
+      // generic parse error
       case _ => Left(ParseErrorUnsupportedCommand())
     }
   }
@@ -139,6 +129,4 @@ object CommandLine {
     speechPart == prepositionArg |
     speechPart == conjunctionArg |
     speechPart == interjectionArg
-
-  private def isLowercaseAlphabetical(w: String) = w forall (('a' to 'z') contains _)
 }

@@ -20,6 +20,7 @@ case class Delete(word: String, partOfSpeech: Option[SpeechPart]) extends Comman
           case None => word.word
           case Some(speechPart) => s"${word.word} ($speechPart)"
         }
+        println(wordString)
       }
     }
   }

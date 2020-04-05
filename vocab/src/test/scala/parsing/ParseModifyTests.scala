@@ -17,29 +17,15 @@ class ParseModifyTests extends AnyFunSuite {
     }
   }
 
-  test("Modify missing type") {
-    val args = List("modify", "cat", "man's best friend", "--type")
-    assertResult(Left(ParseErrorInvalidModifyCommand())) {
-      CommandLine.parseArgs(args)
-    }
-  }
-  
-  test("Modify invalid word") {
-    val args = List("modify", "h0ax", "something fake")
-    assertResult(Left(ParseErrorInvalidWord("h0ax"))) {
-      CommandLine.parseArgs(args)
-    }
-  }
-
   test ("Modify with part of speech valid") {
-    val args = List("modify", "wow", "used to express strong feeling", "--type", "interjection")
+    val args = List("modify", "wow", "used to express strong feeling", "interjection")
     assertResult(Right(Modify("wow", "used to express strong feeling", Some(Interjection)))) {
       CommandLine.parseArgs(args)
     }
   }
 
   test("Modify with part of speech invalid") {
-    val args = List("modify", "wow", "used to express strong feeling", "--type", "exclamation")
+    val args = List("modify", "wow", "used to express strong feeling", "exclamation")
     assertResult(Left(ParseErrorInvalidModifyCommand())) {
       CommandLine.parseArgs(args)
     }
