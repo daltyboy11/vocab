@@ -7,10 +7,11 @@ scalacOptions += "-Xlint"
 // ============================================================================
 
 name := "vocab"
-organization := "io.daltyboy11.github"
+organization := "io.github.daltyboy11"
 version := "1.0.0"
 
-// Want to use a published library in your project?
-// You can define other libraries as dependencies in your build like this:
+/* Unit testing */
 libraryDependencies += "org.scalatest" % "scalatest_2.13" % "3.1.0" % "test"
 
+/* File Management */
+libraryDependencies += "io.github.soc" % "directories" % "11"
