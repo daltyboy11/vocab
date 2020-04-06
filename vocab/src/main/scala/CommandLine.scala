@@ -26,8 +26,6 @@ object CommandLine {
 
   import Args._
 
-  // TODO: Add error messages
-  
   /** Parses the arguments passed to the program and returns a command (if the
    *  arguments were valid) or a parsing error giving the reason for the parse
    *  failure.
