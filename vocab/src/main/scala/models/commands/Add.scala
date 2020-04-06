@@ -27,7 +27,6 @@ case class Add(word: String, definition: String, partOfSpeech: Option[SpeechPart
   def runLogic(implicit storage: Storage): Result = {
     val words = storage.getWords
     val wordToAdd = Word(word, definition, partOfSpeech, 0)
-    val addMessage = if (partOfSpeech.isDefined) s"$word - ${partOfSpeech.get} added" else s"$word added"
     val dupes = words filter (_.word == word)
 
     // If our partOfSpeech is None then no entry can exist for word
