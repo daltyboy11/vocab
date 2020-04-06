@@ -1,10 +1,13 @@
 import org.scalatest.funsuite.AnyFunSuite
+import java.io.{File, FileInputStream, FileOutputStream}
+import io.github.soc.directories.ProjectDirectories
 
 import models._
 import storage._
 
 class StorageTests extends AnyFunSuite {
-  val projectDir = System.getProperty("user.dir")
+
+  val dataDir = ProjectDirectories.from("io", "github.daltyboy11", "vocab").dataDir + "/test"
 
   val csv1Words = Seq(
     Word("ardor", "enthusiasm or passion", Some(Noun), 0),
@@ -23,40 +26,30 @@ class StorageTests extends AnyFunSuite {
     PracticeSession(PercentageNumeric(0.5f), 1, 1, 1, false))
 
   test("word and practice session test data successfully loads") {
-    val storage = Storage(s"${projectDir}/src/test/scala/storage",
-      "words1.csv",
-      "practice_sessions1.csv")
-
+    val storage = Storage(dataDir + "/words1.csv", dataDir + "/practice_sessions1.csv")
     assertResult(csv1Words) {
       storage.getWords
     }
-
     assertResult(csv1PracticeSessions) {
       storage.getPracticeSessions
     }
   }
 
   test("addWord succesfully inserts word") {
-   val storage = Storage(s"${projectDir}/src/test/scala/storage",
-    "words1.csv",
-    "practice_sessions1.csv")
-
-   val wordToAdd = Word("peremptory",
+    val storage = Storage(dataDir + "/words1.csv", dataDir + "/practice_sessions1.csv")
+    val wordToAdd = Word("peremptory",
       "insistion on immediate attention or obedience",
       Some(Adjective),
       0)
 
-   assertResult(csv1Words :+ wordToAdd) {
-     storage.addWord(wordToAdd)
-     storage.getWords
-   }
+    assertResult(csv1Words :+ wordToAdd) {
+      storage.addWord(wordToAdd)
+      storage.getWords
+    }
   }
 
   test("addPracticeSession succesfully inserts practice session") {
-    val storage = Storage(s"${projectDir}/src/test/scala/storage",
-    "words1.csv",
-    "practice_sessions1.csv")
-
+    val storage = Storage(dataDir + "/words1.csv", dataDir + "/practice_sessions1.csv")
     val practiceSessionToAdd = PracticeSession(All, 1, 1, 1, true)
     assertResult(csv1PracticeSessions :+ practiceSessionToAdd) {
       storage.addPracticeSession(practiceSessionToAdd)
@@ -66,11 +59,10 @@ class StorageTests extends AnyFunSuite {
 
   test("commit") {
     // Set up - create temp files
-    import java.io.{File, FileInputStream, FileOutputStream}
-    val srcWordsFile = new File( s"${projectDir}/src/test/scala/storage/words1.csv" )
-    val srcPracticeSessionsFile = new File( s"${projectDir}/src/test/scala/storage/practice_sessions1.csv" )
-    val destWordsFile = new File( s"${projectDir}/src/test/scala/storage/words2.csv" )
-    val destPracticeSessionsFile = new File( s"${projectDir}/src/test/scala/storage/practice_sessions2.csv" )
+    val srcWordsFile = new File(dataDir + "/words1.csv")
+    val srcPracticeSessionsFile = new File(dataDir + "/practice_sessions1.csv")
+    val destWordsFile = new File(dataDir + "/words2.csv")
+    val destPracticeSessionsFile = new File(dataDir + "/practice_sessions2.csv")
     (new FileOutputStream( destWordsFile ))
       .getChannel
       .transferFrom( new FileInputStream( srcWordsFile ).getChannel, 0, Long.MaxValue )
@@ -79,10 +71,7 @@ class StorageTests extends AnyFunSuite {
       .transferFrom( new FileInputStream( srcPracticeSessionsFile ).getChannel, 0, Long.MaxValue )
 
     // Test that committing will overwrite the contents of the storage files
-    val storage = Storage( s"${projectDir}/src/test/scala/storage",
-      "words2.csv",
-      "practice_sessions2.csv"
-    )
+    val storage = Storage(dataDir + "/words2.csv", dataDir + "/practice_sessions2.csv")
 
     val word1 = Word( "hoise", "to lift raise", Some( Verb ), 0 )
     val word2 = Word( "ambidextrous", "using both hands with equal dexterity", Some( Adjective ), 5 )
@@ -112,28 +101,21 @@ class StorageTests extends AnyFunSuite {
       practiceSession1)
 
     // Create a new storage with the same source files. This will be a fresh reload of the files
-    val testStorage = Storage( s"${projectDir}/src/test/scala/storage",
-      "words2.csv",
-      "practice_sessions2.csv"
-    )
+    val testStorage = Storage(dataDir + "/words2.csv", dataDir + "/practice_sessions2.csv")
 
     assertResult( expectedWords ) {
       testStorage.getWords
     }
-
     assertResult( expectedPracticeSessions ) {
       testStorage.getPracticeSessions
     }
 
-    // Tear down - destroy temp files
     destWordsFile.delete()
     destPracticeSessionsFile.delete()
   }
 
   test("increment word counts") {
-    val storage = Storage(s"${projectDir}/src/test/scala/storage",
-      "words1.csv",
-      "practice_sessions1.csv")
+    val storage = Storage(dataDir + "/words1.csv", dataDir + "/practice_sessions1.csv")
 
     val wordsToIncrement = Set(
       Word("ardor", "enthusiasm or passion", Some(Noun), 0),
