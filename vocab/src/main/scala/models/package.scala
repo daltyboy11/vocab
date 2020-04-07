@@ -10,25 +10,37 @@ package object models {
      * original sequence is on one and ONLY one line.
      */
     def splitDefinition(definition: Seq[String])(implicit maxColumnWidth: Int): Seq[String] = {
+      // TODO - breaks down when there is a word longer than the maxColumnWidth.
       @tailrec
       def splitDefinitionAcc(definition: Seq[String], result: Seq[String]): Seq[String] = {
-        val headAndTail = definition.foldLeft((Seq.empty[String], Seq.empty[String])) { case ((head, tail), word) =>
-          val numWhitespaceChars = if (head.length > 1) head.length - 1 else 0
-          val totalCharsOnLine = numWhitespaceChars + (if (head.length > 0) head.map(_.length).reduce(_ + _) else 0)
-          if (totalCharsOnLine + word.length + 1 <= maxColumnWidth) {
-            (head :+ word, tail)
+        var _definition = definition
+        var currentLine = Seq.empty[String]
+        var doneAdding = false
+        while (!_definition.isEmpty && !doneAdding) {
+          val currentWord = _definition.head
+          if (currentLine.isEmpty) {
+            currentLine = currentLine :+ currentWord
+            _definition = _definition.tail
           } else {
-            (head, tail :+ word)
+            val numSpaces = currentLine.length - 1
+            val numChars = currentLine map (_.length) reduce (_ + _)
+            val currentLineLen = numSpaces + numChars
+            if (currentLineLen + 1 + currentWord.length > maxColumnWidth) {
+              doneAdding = true
+            } else {
+              currentLine = currentLine :+ currentWord
+              _definition = _definition.tail
+            }
           }
         }
 
-        if (headAndTail._2.length == 0) {
-          // we are done
-          result ++ List(headAndTail._1.mkString(" "))
+        if (_definition.isEmpty) {
+          result ++ List(currentLine mkString " ")
         } else {
-          splitDefinitionAcc(headAndTail._2, result ++ List(headAndTail._1.mkString(" ")))
+          splitDefinitionAcc(_definition, result ++ List(currentLine mkString " "))
         }
       }
+
       splitDefinitionAcc(definition, Seq.empty[String])
     }
 
