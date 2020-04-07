@@ -90,7 +90,7 @@ and run `seed_words.sh` to add these words to your practice.
 - recondite
 - recrudescence
 - saccharine
-- senescene
+- senescence
 - surfeit
 - sybaritic
 - vertiginous
