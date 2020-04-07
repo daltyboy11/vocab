@@ -1,7 +1,6 @@
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.BeforeAndAfter
-import io.github.soc.directories.ProjectDirectories
-import java.nio.file.{Files, Paths}
+import java.nio.file.Paths
 import scala.util.Random
 import scala.collection.mutable.ListBuffer
 import java.io._
@@ -18,8 +17,7 @@ class BaseCommandTests extends AnyFunSuite with BeforeAndAfter {
     copyFiles foreach deleteFile
   }
 
-  val dataDir = ProjectDirectories.from("io", "github.daltyboy11", "vocab").dataDir + "/test"
-  Files.createDirectories(Paths.get(dataDir))
+  val dataDir = Paths.get(".").toAbsolutePath.toString + "/src/test/scala/test_data"
   
   def makeStorage(wordFileName: String, practiceSessionFileName: String) =
     Storage(dataDir + s"/$wordFileName", dataDir + s"/$practiceSessionFileName")

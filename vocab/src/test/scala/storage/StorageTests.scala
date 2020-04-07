@@ -1,13 +1,13 @@
 import org.scalatest.funsuite.AnyFunSuite
 import java.io.{File, FileInputStream, FileOutputStream}
-import io.github.soc.directories.ProjectDirectories
+import java.nio.file.Paths
 
 import models._
 import storage._
 
 class StorageTests extends AnyFunSuite {
 
-  val dataDir = ProjectDirectories.from("io", "github.daltyboy11", "vocab").dataDir + "/test"
+  val dataDir = Paths.get(".").toAbsolutePath.toString + "/src/test/scala/test_data"
 
   val csv1Words = Seq(
     Word("ardor", "enthusiasm or passion", Some(Noun), 0),
