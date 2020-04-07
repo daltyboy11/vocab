@@ -78,6 +78,7 @@ final case class Practice(sessionType: Option[PracticeSessionType]) extends Comm
 
     var didQuit = false
     var showDefinition = false
+    val wordColWidth = practiceSessionWords.map(_.word.length).max
 
     while (!(practiceSession.isFinished || didQuit)) {
       val currentWord = practiceSession.currentWord
@@ -86,7 +87,7 @@ final case class Practice(sessionType: Option[PracticeSessionType]) extends Comm
         word = currentWord,
         wordColor = Console.WHITE,
         showDefinition = showDefinition,
-        wordColWidth = currentWord.word.length,
+        wordColWidth = wordColWidth,
         definitionColWidth = definitionColWidth,
         partOfSpeechColWidth = partOfSpeechColWidth 
       ) mkString "\n"
