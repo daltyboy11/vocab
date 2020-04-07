@@ -63,5 +63,34 @@ Confusing affect with effect... whoops!
 
 `vocab modify affect "have an effect on; make a difference to."`
 
-
 # Installation
+
+## Some starter words
+Here is a list of words I was able to remember by practicing with `vocab`. This
+is just a recommendation based on my personal experience! After setup, go ahead
+and run `seed_words.sh` to add these words to your practice.
+
+- clerisy
+- convoke
+- deracinate
+- deviltry
+- effete
+- fecund
+- harried
+- irredentist
+- lugubrious
+- munificent
+- parlous
+- paroxysm
+- patina
+- penury
+- perquisite
+- philippic
+- phillistine
+- recondite
+- recrudescence
+- saccharine
+- senescene
+- surfeit
+- sybaritic
+- vertiginous
