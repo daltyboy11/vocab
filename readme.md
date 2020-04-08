@@ -18,6 +18,18 @@ have; one everyone can improve on. Doesn't it suck when you stumble in the
 middle of a conversation because the word you're looking for is on the tip of
 your tongue?
 
+# Installation Guide
+
+Available on Linux and macOS
+```bash
+git clone https://github.com/daltyboy11/vocab.git
+cd vocab/vocab/
+chmod +x setup.sh
+./setup.sh
+# uncomment to optionally seed vocab with some start words
+# python3 seed_words.py
+```
+
 # Usage
 Use `vocab` to manage a list of words you'd like to become familiar with.
 Practice your words by running a *practice session*. Vocab presents words to you
@@ -114,18 +126,6 @@ Confusing affect with effect... whoops!
 For a full list of flags and features, run
 
 `vocab help`
-
-# Installation Guide
-
-Available on Linux and macOS
-```bash
-git clone https://github.com/daltyboy11/vocab.git
-cd vocab/vocab/
-chmod +x setup.sh
-./setup.sh
-# uncomment to optionally seed vocab with some start words
-# python3 seed_words.py
-```
 
 ## Requirements
 - [sbt](https://www.scala-sbt.org/download.html)
