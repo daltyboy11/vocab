@@ -17,8 +17,8 @@ case class Delete(word: String, partOfSpeech: Option[SpeechPart]) extends Comman
       case Result.NotFound => println(s"$word not found")
       case Result.Deleted(words) => words foreach { case word =>
         val wordString = word.partOfSpeech match {
-          case None => word.word
-          case Some(speechPart) => s"${word.word} ($speechPart)"
+          case None => s"deleted ${word.word}"
+          case Some(speechPart) => s"deleted ${word.word} ($speechPart)"
         }
         println(wordString)
       }
