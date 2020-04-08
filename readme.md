@@ -20,7 +20,7 @@ your tongue?
 
 # Installation Guide
 
-Available on Linux and macOS
+Available on Linux and macOS. Requires [sbt](https://www.scala-sbt.org/download.html), [python](https://www.python.org/downloads/), and [java](https://www.java.com/en/download/).
 ```bash
 git clone https://github.com/daltyboy11/vocab.git
 cd vocab/vocab/
@@ -126,11 +126,6 @@ Confusing affect with effect... whoops!
 For a full list of flags and features, run
 
 `vocab help`
-
-## Requirements
-- [sbt](https://www.scala-sbt.org/download.html)
-- [python](https://www.python.org/downloads/)
-- [java](https://www.java.com/en/download/)
 
 ## Some starter words
 Here is a list of words I was able to remember by practicing with `vocab`. This
