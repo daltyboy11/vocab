@@ -27,12 +27,12 @@ words to show you.
 
 ## Adding words to your vocabulary list
 You add a word by providing its name, definition, and optionally what part of
-speech it belongs to
+speech it belongs to.
 
-`vocab add peregrination "a long and meandering journel" noun`
+`vocab add peregrination "a long and meandering journey" noun`
 
 ## Deleting words
-Delete words you're so familiar with that you no longer need practice.
+Delete words you don't need to practice anymore.
 
 `vocab delete recrudescence`
 
@@ -110,12 +110,17 @@ Confusing affect with effect... whoops!
 
 `vocab modify affect "have an effect on; make a difference to."`
 
+## Getting help
+For a full list of flags and features, run
+
+`vocab help`
+
 # Installation Guide
 
 Available on Linux and macOS
 ```bash
 git clone https://github.com/daltyboy11/vocab.git
-cd vocab/vocab
+cd vocab/vocab/
 chmod +x setup.sh
 ./setup.sh
 # uncomment to optionally seed vocab with some start words
