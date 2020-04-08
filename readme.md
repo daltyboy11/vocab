@@ -26,8 +26,8 @@ repetition](https://en.wikipedia.org/wiki/Spaced_repetition) to decide what
 words to show you.
 
 ## Adding words to your vocabulary list
-You add a word by providing its name, definition, and optinally what part of
-speech to which it belongs
+You add a word by providing its name, definition, and optionally what part of
+speech it belongs to
 
 `vocab add peregrination "a long and meandering journel" noun`
 
