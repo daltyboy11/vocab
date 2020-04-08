@@ -5,11 +5,13 @@ vocabulary.
 > The limits of my language mean the limits of my world.
   - Ludwig Wittgenstein
 
-This quote has several interpretations but my preferred one (taken out of
-context from Wittgenstein's philosophy) is this: We use language to express
-ideas and reason about the world. Knowing and using more words can improve the
-clarity and precision of those thoughts and ideas, thus improving our clarity
-and precision when reasoning about the world.
+This quote has several interpretations but my personal interpretation (taken out of
+context from Wittgenstein's philosophy) is this:
+
+We use language to express ideas and reason about the world. Knowing
+and using more words can improve the clarity and precision of those
+thoughts and ideas, thus improving our clarity and precision when
+reasoning about the world.
 
 Conveying your thoughts clearly and precisely to others is an excellent skill to
 have; one everyone can improve on. Doesn't it suck when you stumble in the
@@ -82,7 +84,7 @@ at remembering) to move onto the next word:
 | surfeit    | an excessive amount of something    | noun           |
 ---------------------------------------------------------------------
 input: r
-Recalled
+Recalled!
 ```
 
 **Your console after "forgetting" the word**
@@ -109,6 +111,21 @@ Confusing affect with effect... whoops!
 `vocab modify affect "have an effect on; make a difference to."`
 
 # Installation Guide
+
+Available on Linux and macOS
+```bash
+git clone https://github.com/daltyboy11/vocab.git
+cd vocab/vocab
+chmod +x setup.sh
+./setup.sh
+# uncomment to optionally seed vocab with some start words
+# python3 seed_words.py
+```
+
+## Requirements
+- [sbt](https://www.scala-sbt.org/download.html)
+- [python](https://www.python.org/downloads/)
+- [java](https://www.java.com/en/download/)
 
 ## Some starter words
 Here is a list of words I was able to remember by practicing with `vocab`. This
@@ -139,3 +156,8 @@ and run `seed_words.py` to add these words to your practice.
 - surfeit
 - sybaritic
 - vertiginous
+
+# Why?
+Unlike the plethora of generic flashcard/memorization software available, `vocab`
+is lightweight, designed for a very specific purpose, and intended to be used by
+those who already spend a lot of their computer time in the console.
