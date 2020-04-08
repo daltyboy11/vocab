@@ -5,10 +5,7 @@ vocabulary.
 > The limits of my language mean the limits of my world.
   - Ludwig Wittgenstein
 
-<div>
-<img src="https://github.com/daltyboy11/vocab/blob/master/wittgenstein.jpg" width="150" height="209"/>
-</div>
-![The philosopher Ludwig Wittgenstein](https://github.com/daltyboy11/vocab/blob/master/wittgenstein.jpg =150x209)
+![The philosopher Ludwig Wittgenstein](https://github.com/daltyboy11/vocab/blob/master/wittgenstein.jpg)
 
 This quote has several interpretations but my personal interpretation (taken out of
 context from Wittgenstein's philosophy) is this:
