@@ -5,19 +5,23 @@ vocabulary.
 > The limits of my language mean the limits of my world.
   - Ludwig Wittgenstein
 
-You can know a lot of words and not come off as pretentious. In fact, being able
-to draw on a large vocabulary to precisely express thoughts and ideas is an
-incredible ability to have; one we can all improve on. It sucks when the word
-you're looking for is just on the tip of your tongue!
+This quote has several interpretations but my preferred one (taken out of
+context from Wittgenstein's philosophy) is this: We use language to express
+ideas and reason about the world. Knowing and using more words can improve the
+clarity and precision of those thoughts and ideas, thus improving our clarity
+and precision when reasoning about the world.
+
+Conveying your thoughts clearly and precisely to others is an excellent skill to
+have; one everyone can improve on. Doesn't it suck when you stumble in the
+middle of a conversation because the word you're looking for is on the tip of
+your tongue?
 
 # Usage
 Use `vocab` to manage a list of words you'd like to become familiar with.
-Rehearse you understanding by running *practice sessions* in which you try to
-recall definitions and use the words in sentences.
-
-Under the hood `vocab` uses the principle of [spaced
-repetition](https://en.wikipedia.org/wiki/Spaced_repetition) to maximize your
-practice efficiency.
+Practice your words by running a *practice session*. Vocab presents words to you
+like flashcards, utilizing the principle of [spaced
+repetition](https://en.wikipedia.org/wiki/Spaced_repetition) to decide what
+words to show you.
 
 ## Adding words to your vocabulary list
 You add a word by providing its name, definition, and optinally what part of
@@ -34,22 +38,63 @@ Delete words you're so familiar with that you no longer need practice.
 `vocab practice` launches an interactive practice session in your console.
 See `vocab help` for flags to configure the number of words in a practice session.
 
-You will see a word without its definition. This is when you try and recall its
-definition. I recommend you come up with a sentence using it as well. Once you
-are satisfied with your effort you can move on to the word.
+You will see a word in the console without its definition. This is when you
+should try to recall its definition. To maximize learning we recommend you also
+try to come up with a sentence using the word. Once you are satisfied with your
+attempt you can move on to the next word.
 
-// TODO - insert image
+**Your console after starting a practice session**
+```
+---------------------------------------------------------------------
+| word       | definition                          | part of speech |
+---------------------------------------------------------------------
+| paroxysm   |                                     | noun           |
+|            |                                     |                |
+|            |                                     |                |
+---------------------------------------------------------------------
+input:
+```
+
+If you can't remember what the word means despite your best effort, or you made
+a guess but aren't entirely sure, input `s` (for show) to display the
+definition:
+
+**Your console after using the `show` command**
+```
+---------------------------------------------------------------------
+| word       | definition                          | part of speech |
+---------------------------------------------------------------------
+| paroxysm   | a sudden attack or violent          | noun           |
+|            | expression of a particular emotion  |                |
+|            | or activity                         |                |
+---------------------------------------------------------------------
+input:
+```
 
 Input `r` (for recalled, a successful attempt) or `f` (for forgot, a failed attempt
-at remembering) to move onto the next word.
+at remembering) to move onto the next word:
 
-// TODO - insert image
+**Your console after "recalling" the word**
+```
+---------------------------------------------------------------------
+| word       | definition                          | part of speech |
+---------------------------------------------------------------------
+| surfeit    | an excessive amount of something    | noun           |
+---------------------------------------------------------------------
+input: r
+Recalled
+```
 
-If you can't remember what the word means despite your best efforts, or you made
-a guess but aren't entirely sure, input `s` (for show) to display the
-definition.
-
-// TODO - insert image
+**Your console after "forgetting" the word**
+```
+---------------------------------------------------------------------
+| word       | definition                          | part of speech |
+---------------------------------------------------------------------
+| surfeit    | an excessive amount of something    | noun           |
+---------------------------------------------------------------------
+input: f
+Not Recalled!
+```
 
 The practice session ends when you've successfully recalled each word three
 times.
@@ -63,12 +108,12 @@ Confusing affect with effect... whoops!
 
 `vocab modify affect "have an effect on; make a difference to."`
 
-# Installation
+# Installation Guide
 
 ## Some starter words
 Here is a list of words I was able to remember by practicing with `vocab`. This
-is just a recommendation based on my personal experience! After setup, go ahead
-and run `seed_words.sh` to add these words to your practice.
+is just a recommendation based on my personal readings! After setup, go ahead
+and run `seed_words.py` to add these words to your practice.
 
 - clerisy
 - convoke
