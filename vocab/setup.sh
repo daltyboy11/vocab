@@ -11,9 +11,14 @@ if ! [ -x "$(command -v python3)" ]; then
 fi
 
 # Setup the jar
-sbt assembly
+echo assembling jar...
+sbt assembly &>/dev/null
 
 # Move everyting to /usr/bin
+echo adding vocab to /usr/local/bin
 cp target/scala-2.13/vocab-assembly*.jar /usr/local/bin/vocab.jar
 cp vocab.py /usr/local/bin/vocab
 chmod +x /usr/local/bin/vocab
+
+# done! :)
+echo vocab is ready for use!
