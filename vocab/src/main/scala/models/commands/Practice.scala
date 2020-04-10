@@ -43,7 +43,7 @@ final case class Practice(sessionType: Option[PracticeSessionType]) extends Comm
     val recallThreshold = 3 // terminate after you have successfully recalled each word this many times
   }
 
-  final case class PracticeSessionRun(words: Seq[Word], completions: Map[Word, Int]) {
+  final case class PracticeSessionRun(words: List[Word], completions: Map[Word, Int]) {
     import PracticeSessionRun._
     
     private val _words = Random.shuffle(words)
@@ -58,9 +58,9 @@ final case class Practice(sessionType: Option[PracticeSessionType]) extends Comm
           case `recallThreshold` => _words.tail
           case _ => _words
         }
-        PracticeSessionRun(Random.shuffle(nextWords), completions + (currentWord -> numRecalls))
+        PracticeSessionRun(nextWords, completions + (currentWord -> numRecalls))
       }
-      case false => PracticeSessionRun(Random.shuffle(_words), completions)
+      case false => PracticeSessionRun(_words, completions)
     }
   }
 
@@ -72,7 +72,7 @@ final case class Practice(sessionType: Option[PracticeSessionType]) extends Comm
       return
     }
     var practiceSession = PracticeSessionRun(
-      practiceSessionWords.toSeq,
+      practiceSessionWords.toList,
       practiceSessionWords.foldLeft(Map[Word, Int]())((map, word) => map + (word -> 0))
     )
 
